@@ -1,0 +1,84 @@
+<UserControl
+  x:Class="Client.ControlSpace.PositionsControl"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:ctrl="clr-namespace:Client.ControlSpace"
+  mc:Ignorable="d" 
+  d:DesignHeight="300"
+  d:DesignWidth="400">
+
+  <UserControl.Resources>
+    <Style TargetType="{x:Type TextBlock}" x:Key="RightCell">
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="TextAlignment" Value="Right"/>
+    </Style>
+  </UserControl.Resources>
+
+  <Grid>
+
+    <DataGrid
+      ColumnWidth="Auto"
+      x:Name="DataTable"
+      IsReadOnly="True"
+      CanUserAddRows="False"
+      VerticalAlignment="Top"
+      GridLinesVisibility="Vertical"
+      AutoGenerateColumns="False"
+      CanUserDeleteRows="False"
+      HeadersVisibility="Column"
+      MinColumnWidth="0">
+
+      <DataGrid.RowStyle>
+        <Style TargetType="DataGridRow">
+          <Setter Property="Foreground" Value="{DynamicResource ForegroundMidDark}" />
+          <Setter Property="Background" Value="{DynamicResource PaperBackground}" />
+          <Setter Property="BorderBrush" Value="{DynamicResource ForegroundMidDark}" />
+          <Setter Property="BorderThickness" Value="0,1,0,0" />
+          <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter Property="Background" Value="{DynamicResource CaptionBackground}"/>
+              <Setter Property="Foreground" Value="{DynamicResource ForegroundMidLight}"/>
+              <Setter Property="BorderBrush" Value="Transparent"/>
+            </Trigger>
+          </Style.Triggers>
+        </Style>
+      </DataGrid.RowStyle>
+
+      <DataGrid.CellStyle>
+        <Style TargetType="DataGridCell">
+          <Setter Property="Padding" Value="15,5,15,5"/>
+          <Setter Property="Template">
+            <Setter.Value>
+              <ControlTemplate TargetType="{x:Type DataGridCell}">
+                <Border Padding="{TemplateBinding Padding}" BorderBrush="Transparent" BorderThickness="0" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                  <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                </Border>
+              </ControlTemplate>
+            </Setter.Value>
+          </Setter>
+          <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+              <Setter Property="Background" Value="{DynamicResource CaptionBackground}"/>
+              <Setter Property="Foreground" Value="{DynamicResource ForegroundMidLight}"/>
+              <Setter Property="BorderBrush" Value="Transparent"/>
+            </Trigger>
+          </Style.Triggers>
+        </Style>
+      </DataGrid.CellStyle>
+
+      <DataGrid.Columns>
+        <DataGridTextColumn Width="*" Header="Time" Binding="{Binding Time}" />
+        <DataGridTextColumn Width="*" Header="Instrument" Binding="{Binding Instrument}" />
+        <DataGridTextColumn Width="Auto" Header="Side" Binding="{Binding Side}" />
+        <DataGridTextColumn Width="Auto" Header="Size" Binding="{Binding Size}" ElementStyle="{StaticResource RightCell}" />
+        <DataGridTextColumn Width="Auto" Header="Open Price" Binding="{Binding OpenPrice}" ElementStyle="{StaticResource RightCell}" />
+        <DataGridTextColumn Width="Auto" Header="Close Price" Binding="{Binding ClosePrice}" ElementStyle="{StaticResource RightCell}" />
+        <DataGridTextColumn Width="Auto" Header="PnL" Binding="{Binding PnL}" ElementStyle="{StaticResource RightCell}" />
+      </DataGrid.Columns>
+
+    </DataGrid>
+
+  </Grid>
+</UserControl>

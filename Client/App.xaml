@@ -1,0 +1,71 @@
+<Application
+  x:Class="Client.App"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+  xmlns:local="clr-namespace:Client"
+  StartupUri="Windows/MainWindow.xaml">
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+
+        <!-- MahApps -->
+        <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Dark.Blue.xaml" />
+
+        <!-- Material Design -->
+        <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Dark.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Blue.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Accent/MaterialDesignColor.Lime.xaml" />
+
+        <!-- Bundle -->
+        <md:BundledTheme BaseTheme="Dark" PrimaryColor="Blue" SecondaryColor="Lime" />
+
+      </ResourceDictionary.MergedDictionaries>
+
+      <!-- Primary -->
+      <SolidColorBrush x:Key="PrimaryHueLightBrush" Color="#455A64" />
+      <SolidColorBrush x:Key="PrimaryHueLightForegroundBrush" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="#37474F" />
+      <SolidColorBrush x:Key="PrimaryHueMidForegroundBrush" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="PrimaryHueDarkBrush" Color="#263238" />
+      <SolidColorBrush x:Key="PrimaryHueDarkForegroundBrush" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="PaperBackground" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="ContainerBackground" Color="#1C2331" />
+      <SolidColorBrush x:Key="ContentBackground" Color="#263238" />
+      <SolidColorBrush x:Key="CaptionBackground" Color="#37474F" />
+      <SolidColorBrush x:Key="ForegroundLight" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="ForegroundMidLight" Color="#CCCCCC" />
+      <SolidColorBrush x:Key="ForegroundDark" Color="#000000" />
+      <SolidColorBrush x:Key="ForegroundMidDark" Color="#555555" />
+
+      <!-- Secondary -->
+      <SolidColorBrush x:Key="SecondaryHueMidBrush" Color="#0091EA" />
+      <SolidColorBrush x:Key="SecondaryHueMidForegroundBrush" Color="#FFFFFF" />
+
+      <!-- Override -->
+      <SolidColorBrush x:Key="HighlightBrush" Color="{DynamicResource Primary700}" />
+      <SolidColorBrush x:Key="AccentBaseColorBrush" Color="{DynamicResource Primary600}" />
+      <SolidColorBrush x:Key="AccentColorBrush" Color="{DynamicResource Primary500}" />
+      <SolidColorBrush x:Key="AccentColorBrush2" Color="{DynamicResource Primary400}" />
+      <SolidColorBrush x:Key="AccentColorBrush3" Color="{DynamicResource Primary300}" />
+      <SolidColorBrush x:Key="AccentColorBrush4" Color="{DynamicResource Primary200}" />
+      <SolidColorBrush x:Key="WindowTitleColorBrush" Color="{DynamicResource Primary100}" />
+      <SolidColorBrush x:Key="AccentSelectedColorBrush" Color="{DynamicResource Primary500Foreground}" />
+      <LinearGradientBrush x:Key="ProgressBrush" EndPoint="0.001,0.5" StartPoint="1.002,0.5">
+        <GradientStop Color="{DynamicResource Primary700}" Offset="0" />
+        <GradientStop Color="{DynamicResource Primary300}" Offset="1" />
+      </LinearGradientBrush>
+      <SolidColorBrush x:Key="CheckmarkFill" Color="{DynamicResource Primary500}" />
+      <SolidColorBrush x:Key="RightArrowFill" Color="{DynamicResource Primary500}" />
+      <SolidColorBrush x:Key="IdealForegroundColorBrush" Color="{DynamicResource Primary500Foreground}" />
+      <SolidColorBrush x:Key="IdealForegroundDisabledBrush" Color="{DynamicResource Primary500}" Opacity="0.4" />
+      <SolidColorBrush x:Key="MahApps.Metro.Brushes.ToggleSwitchButton.OnSwitchBrush.Win10" Color="{DynamicResource Primary500}" />
+      <SolidColorBrush x:Key="MahApps.Metro.Brushes.ToggleSwitchButton.OnSwitchMouseOverBrush.Win10" Color="{DynamicResource Primary400}" />
+      <SolidColorBrush x:Key="MahApps.Metro.Brushes.ToggleSwitchButton.ThumbIndicatorCheckedBrush.Win10" Color="{DynamicResource Primary500Foreground}" />
+
+    </ResourceDictionary>
+  </Application.Resources>
+</Application>
