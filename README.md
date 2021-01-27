@@ -6,7 +6,7 @@ Currently supports only stocks with experimental support for FX, options, and fu
 # Structure
 
 * **Core** - cross-platform .NET 5 class library that contains main functionality 
-* **Chart** - graphics and [charts!](https://github.com/Indemos/Canvas)
+* **Chart** - graphics and [charts](https://github.com/Indemos/Canvas)
 * **Client** - the main application that puts together windows for orders, positions, performance metrics, and charts 
 * **Evaluation** - basic unit tests 
 * **Score** - class library measuring performance and related statstics
@@ -20,7 +20,7 @@ In order to create connector for preferable broker, implement interface `IGatewa
 
 # Trading Strategies
 
-[Examples!](https://github.com/Indemos/Terminal/tree/master/Client/Strategies) of simple trading strategies can be found in `Client` catalog.
+[Examples](https://github.com/Indemos/Terminal/tree/master/Client/Strategies) of simple trading strategies can be found in `Client` catalog.
 
 # Preview 
 
