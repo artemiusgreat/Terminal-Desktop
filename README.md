@@ -1,7 +1,7 @@
 # Stock Trading Terminal and Backtester - Desktop Version
 
 All-in-one. Trading terminal with generic gateway implementation, tick backtester, charting, and performance evaluator for trading strategies.
-Currently supports only stocks with experimental support for FX, options, and futures. 
+Currently supports only stocks with experimental extent for FX, options, and futures. 
 
 # Structure
 
