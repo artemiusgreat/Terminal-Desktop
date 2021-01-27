@@ -1,0 +1,61 @@
+<metro:MetroWindow
+  x:Class="Client.WindowSpace.MainWindow"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
+  xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+  xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+  xmlns:wnd="clr-namespace:Client.WindowSpace"
+  xmlns:ctrl="clr-namespace:Client.ControlSpace"
+  xmlns:local="clr-namespace:Client"
+  mc:Ignorable="d"
+  Height="450"
+  Width="800"
+  Title="Terminal"
+  WindowStartupLocation="CenterScreen"
+  Closed="OnWindowClose"
+  x:Name="WindowContainer">
+
+  <Grid x:Name="GridContainer" Background="{DynamicResource ContainerBackground}">
+
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="Auto"></ColumnDefinition>
+      <ColumnDefinition></ColumnDefinition>
+    </Grid.ColumnDefinitions>
+
+    <Border HorizontalAlignment="Left" Padding="5,5,5,5" Grid.Column="0">
+
+      <Grid x:Name="MenuControl" Width="{Binding MenuSize, ElementName=WindowContainer}" Background="{DynamicResource ContentBackground}">
+
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"></RowDefinition>
+          <RowDefinition Height="Auto"></RowDefinition>
+          <RowDefinition Height="Auto"></RowDefinition>
+        </Grid.RowDefinitions>
+
+        <ctrl:MenuItemControl
+          Grid.Row="0"
+          Icon="PowerOffSolid"
+          Border="0,0,0,0.5"
+          Caption="Controls"
+          Actions="{Binding ControlActions, ElementName=WindowContainer}" />
+
+        <ctrl:MenuItemControl
+          Grid.Row="1"
+          Icon="PollSolid"
+          Border="0,0,0,0.5"
+          Caption="Charts" 
+          Actions="{Binding ChartActions, ElementName=WindowContainer}" />
+
+        <ctrl:MenuItemControl
+          Grid.Row="2"
+          Icon="TasksSolid"
+          Caption="Statements"
+          Actions="{Binding StatementActions, ElementName=WindowContainer}" />
+
+      </Grid>
+    </Border>
+  </Grid>
+</metro:MetroWindow>
