@@ -151,44 +151,44 @@ namespace Client.StrategySpace
     /// </summary>
     protected void CreateCharts()
     {
-      var dealIndicator = new ChartModel
-      {
-        Name = "Transactions",
-        Area = _asset,
-        Shape = nameof(ShapeEnum.Arrow)
-      };
+      //var dealIndicator = new ChartModel
+      //{
+      //  Name = "Transactions",
+      //  Area = _asset,
+      //  Shape = nameof(ShapeEnum.Arrow)
+      //};
 
-      _instrument.Chart.Name = _asset;
-      _instrument.Chart.Area = _asset;
-      _instrument.Chart.Shape = nameof(ShapeEnum.Candle);
+      //_instrument.Chart.Name = _asset;
+      //_instrument.Chart.Area = _asset;
+      //_instrument.Chart.Shape = nameof(ShapeEnum.Candle);
 
-      _bidIndicator.Chart.Name = _bidIndicator.Name;
-      _bidIndicator.Chart.Area = _asset;
-      _bidIndicator.Chart.Shape = nameof(ShapeEnum.Line);
+      //_bidIndicator.Chart.Name = _bidIndicator.Name;
+      //_bidIndicator.Chart.Area = _asset;
+      //_bidIndicator.Chart.Shape = nameof(ShapeEnum.Line);
 
-      _askIndicator.Chart.Name = _askIndicator.Name;
-      _askIndicator.Chart.Area = _asset;
-      _askIndicator.Chart.Shape = nameof(ShapeEnum.Line);
+      //_askIndicator.Chart.Name = _askIndicator.Name;
+      //_askIndicator.Chart.Area = _asset;
+      //_askIndicator.Chart.Shape = nameof(ShapeEnum.Line);
 
-      _rsiIndicator.Chart.Name = _rsiIndicator.Name;
-      _rsiIndicator.Chart.Area = "RSI";
-      _rsiIndicator.Chart.Shape = nameof(ShapeEnum.Line);
+      //_rsiIndicator.Chart.Name = _rsiIndicator.Name;
+      //_rsiIndicator.Chart.Area = "RSI";
+      //_rsiIndicator.Chart.Shape = nameof(ShapeEnum.Line);
 
-      _atrIndicator.Chart.Name = _atrIndicator.Name;
-      _atrIndicator.Chart.Area = "ATR";
-      _atrIndicator.Chart.Shape = nameof(ShapeEnum.Line);
+      //_atrIndicator.Chart.Name = _atrIndicator.Name;
+      //_atrIndicator.Chart.Area = "ATR";
+      //_atrIndicator.Chart.Shape = nameof(ShapeEnum.Line);
 
-      _performanceIndicator.Chart.Name = _performanceIndicator.Name;
-      _performanceIndicator.Chart.Area = "Performance";
-      _performanceIndicator.Chart.Shape = nameof(ShapeEnum.Area);
+      //_performanceIndicator.Chart.Name = _performanceIndicator.Name;
+      //_performanceIndicator.Chart.Area = "Performance";
+      //_performanceIndicator.Chart.Shape = nameof(ShapeEnum.Area);
 
-      Charts.Add(_instrument.Chart);
-      Charts.Add(_bidIndicator.Chart);
-      Charts.Add(_askIndicator.Chart);
-      Charts.Add(_rsiIndicator.Chart);
-      Charts.Add(_atrIndicator.Chart);
-      Charts.Add(_performanceIndicator.Chart);
-      Charts.Add(dealIndicator);
+      //Charts.Add(_instrument.Chart);
+      //Charts.Add(_bidIndicator.Chart);
+      //Charts.Add(_askIndicator.Chart);
+      //Charts.Add(_rsiIndicator.Chart);
+      //Charts.Add(_atrIndicator.Chart);
+      //Charts.Add(_performanceIndicator.Chart);
+      //Charts.Add(dealIndicator);
     }
   }
 }

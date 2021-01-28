@@ -29,12 +29,7 @@ namespace Core.ModelSpace
     double? AskSize { get; set; }
 
     /// <summary>
-    /// Reference to the chart properties
-    /// </summary>
-    IChartModel Chart { get; set; }
-
-    /// <summary>
-    /// Rference to the complex data point
+    /// Reference to the complex data point
     /// </summary>
     IPointBarModel Bar { get; set; }
 
@@ -42,6 +37,11 @@ namespace Core.ModelSpace
     /// Reference to the account
     /// </summary>
     IAccountModel Account { get; set; }
+
+    /// <summary>
+    /// Style
+    /// </summary>
+    IChartDataModel ChartData { get; set; }
 
     /// <summary>
     /// Reference to the instrument
@@ -80,12 +80,7 @@ namespace Core.ModelSpace
     public virtual double? AskSize { get; set; }
 
     /// <summary>
-    /// Reference to the chart properties
-    /// </summary>
-    public virtual IChartModel Chart { get; set; }
-
-    /// <summary>
-    /// Rference to the complex data point
+    /// Reference to the complex data point
     /// </summary>
     public virtual IPointBarModel Bar { get; set; }
 
@@ -93,6 +88,11 @@ namespace Core.ModelSpace
     /// Reference to the account
     /// </summary>
     public virtual IAccountModel Account { get; set; }
+
+    /// <summary>
+    /// Style
+    /// </summary>
+    public virtual IChartDataModel ChartData { get; set; }
 
     /// <summary>
     /// Reference to the instrument
@@ -109,7 +109,7 @@ namespace Core.ModelSpace
     /// </summary>
     public PointModel()
     {
-      Chart = new ChartModel();
+      ChartData = new ChartDataModel();
       Series = new Dictionary<string, IPointModel>();
     }
   }

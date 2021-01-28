@@ -32,7 +32,7 @@ namespace Gateway.Simulation
           Instrument = instrument.Value,
           Time = DateTime.Now.AddDays(-days),
           TimeFrame = instrument.Value.TimeFrame,
-          Chart = instrument.Value.Chart,
+          ChartData = instrument.Value.ChartData,
           Bar = new PointBarModel
           {
             Low = price,

@@ -25,7 +25,7 @@ namespace Chart.SeriesSpace
 
       var size = Math.Max(position - (position - 1.0), 0.0) / 4;
 
-      var shapeModel = new ShapeModel
+      var shapeModel = new InputShapeModel
       {
         Size = 1,
         Color = currentModel.Color ?? Color

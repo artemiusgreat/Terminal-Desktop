@@ -210,30 +210,44 @@ namespace Client.StrategySpace
     /// </summary>
     protected void CreateCharts()
     {
-      var dealIndicator = new ChartModel
+      _instrument.ChartData.Area = "Chart";
+      _instrument.ChartData.Name = _instrument.Name;
+      _instrument.ChartData.Shape = nameof(ShapeEnum.Candle);
+
+      _imbalanceIndicator.ChartData.Area = "Volume";
+      _imbalanceIndicator.ChartData.Name = _imbalanceIndicator.Name;
+      _imbalanceIndicator.ChartData.Shape = nameof(ShapeEnum.Bar);
+
+      _performanceIndicator.ChartData.Area = "Performance";
+      _performanceIndicator.ChartData.Name = _performanceIndicator.Name;
+      _performanceIndicator.ChartData.Shape = nameof(ShapeEnum.Area);
+
+      var deals = new ChartDataModel
       {
         Name = "Transactions",
-        Area = _asset,
+        Area = _instrument.ChartData.Area,
         Shape = nameof(ShapeEnum.Arrow)
       };
 
-      _instrument.Chart.Name = _asset;
-      _instrument.Chart.Area = _asset;
-      _instrument.Chart.Shape = nameof(ShapeEnum.Candle);
-
-      _imbalanceIndicator.Chart.Center = 0;
-      _imbalanceIndicator.Chart.Name = _imbalanceIndicator.Name;
-      _imbalanceIndicator.Chart.Area = "Imbalance";
-      _imbalanceIndicator.Chart.Shape = nameof(ShapeEnum.Bar);
-
-      _performanceIndicator.Chart.Name = _performanceIndicator.Name;
-      _performanceIndicator.Chart.Area = "Performance";
-      _performanceIndicator.Chart.Shape = nameof(ShapeEnum.Area);
-
-      Charts.Add(_instrument.Chart);
-      Charts.Add(_imbalanceIndicator.Chart);
-      Charts.Add(_performanceIndicator.Chart);
-      Charts.Add(dealIndicator);
+      Charts = new IndexCollection<IChartModel>
+      {
+        new ChartModel
+        {
+          Name = _instrument.ChartData.Area,
+          ChartData = new NameCollection<string, IChartDataModel> { _instrument.ChartData, deals }
+        },
+        new ChartModel
+        {
+          Center = 0,
+          Name = _imbalanceIndicator.ChartData.Area,
+          ChartData = new NameCollection<string, IChartDataModel> { _imbalanceIndicator.ChartData }
+        },
+        new ChartModel
+        {
+          Name = _performanceIndicator.ChartData.Area,
+          ChartData = new NameCollection<string, IChartDataModel> { _performanceIndicator.ChartData }
+        }
+      };
     }
   }
 }

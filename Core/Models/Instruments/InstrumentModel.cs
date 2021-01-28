@@ -45,14 +45,14 @@ namespace Core.ModelSpace
     TimeSpan? TimeFrame { get; set; }
 
     /// <summary>
-    /// Reference to the chart properties
-    /// </summary>
-    IChartModel Chart { get; set; }
-
-    /// <summary>
     /// Reference to the account
     /// </summary>
     IAccountModel Account { get; set; }
+
+    /// <summary>
+    /// Style
+    /// </summary>
+    IChartDataModel ChartData { get; set; }
 
     /// <summary>
     /// Reference to option model
@@ -116,14 +116,14 @@ namespace Core.ModelSpace
     public virtual TimeSpan? TimeFrame { get; set; }
 
     /// <summary>
-    /// Reference to the chart properties
-    /// </summary>
-    public virtual IChartModel Chart { get; set; }
-
-    /// <summary>
     /// Reference to the account
     /// </summary>
     public virtual IAccountModel Account { get; set; }
+
+    /// <summary>
+    /// Style
+    /// </summary>
+    public virtual IChartDataModel ChartData { get; set; }
 
     /// <summary>
     /// Reference to option model
@@ -157,7 +157,7 @@ namespace Core.ModelSpace
       Commission = 0.0;
       ContractSize = 1.0;
 
-      Chart = new ChartModel();
+      ChartData = new ChartDataModel();
       Points = new TimeSpanCollection<IPointModel>();
       PointGroups = new TimeSpanCollection<IPointModel>();
     }

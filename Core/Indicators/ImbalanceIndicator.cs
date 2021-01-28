@@ -1,6 +1,5 @@
 using Core.CollectionSpace;
 using Core.ModelSpace;
-using System.Drawing;
 using System.Linq;
 
 namespace Core.IndicatorSpace
@@ -33,7 +32,7 @@ namespace Core.IndicatorSpace
       currentPoint.Series[Name] = currentPoint.Series.TryGetValue(Name, out IPointModel seriesItem) ? seriesItem : new ImbalanceIndicator();
       currentPoint.Series[Name].Time = currentPoint.Time;
       currentPoint.Series[Name].TimeFrame = currentPoint.TimeFrame;
-      currentPoint.Series[Name].Chart = Chart;
+      currentPoint.Series[Name].ChartData = ChartData;
 
       var value = 0.0;
 

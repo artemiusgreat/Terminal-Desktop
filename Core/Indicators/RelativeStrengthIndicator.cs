@@ -72,7 +72,7 @@ namespace Core.IndicatorSpace
       currentPoint.Series[Name] = currentPoint.Series.TryGetValue(Name, out IPointModel seriesItem) ? seriesItem : new RelativeStrengthIndicator();
       currentPoint.Series[Name].Bar.Close = currentPoint.Series[Name].Last = nextIndicatorPoint.Bar.Close;
       currentPoint.Series[Name].Time = currentPoint.Time;
-      currentPoint.Series[Name].Chart = Chart;
+      currentPoint.Series[Name].ChartData = ChartData;
 
       Last = Bar.Close = currentPoint.Series[Name].Bar.Close;
 

@@ -100,7 +100,7 @@ namespace Core.ModelSpace
       point.Account = Account;
       point.Instrument = instrument;
       point.Name = point.Instrument.Name;
-      point.Chart = point.Instrument.Chart;
+      point.ChartData = point.Instrument.ChartData;
       point.TimeFrame = point.Instrument.TimeFrame;
       point.Instrument.Points.Add(point);
       point.Instrument.PointGroups.Add(point, point.Instrument.TimeFrame);

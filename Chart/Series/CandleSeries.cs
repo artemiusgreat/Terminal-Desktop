@@ -51,7 +51,7 @@ namespace Chart.SeriesSpace
       var upSide = Math.Max(currentModel.Open, currentModel.Close);
       var downSide = Math.Min(currentModel.Open, currentModel.Close);
 
-      var shapeModel = new ShapeModel
+      var shapeModel = new InputShapeModel
       {
         Size = 1,
         Color = currentModel.Color ?? Color

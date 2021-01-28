@@ -78,7 +78,7 @@ namespace Core.IndicatorSpace
       currentPoint.Series[Name] = currentPoint.Series.TryGetValue(Name, out IPointModel seriesItem) ? seriesItem : new ScaleIndicator();
       currentPoint.Series[Name].Bar.Close = currentPoint.Series[Name].Last = CalculationManager.LinearWeightAverage(Values.Select(o => o.Bar.Close.Value), Values.Count - 1, Interval);
       currentPoint.Series[Name].Time = currentPoint.Time;
-      currentPoint.Series[Name].Chart = Chart;
+      currentPoint.Series[Name].ChartData = ChartData;
 
       Last = Bar.Close = currentPoint.Series[Name].Bar.Close;
 

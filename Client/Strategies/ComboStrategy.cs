@@ -155,31 +155,31 @@ namespace Client.StrategySpace
     /// </summary>
     protected void CreateCharts(IInstrumentModel instrumentX, IInstrumentModel instrumentY)
     {
-      instrumentX.Chart.Name = _assetX;
-      instrumentX.Chart.Area = _assetX;
-      instrumentX.Chart.Shape = nameof(ShapeEnum.Candle);
+      //instrumentX.Chart.Name = _assetX;
+      //instrumentX.Chart.Area = _assetX;
+      //instrumentX.Chart.Shape = nameof(ShapeEnum.Candle);
 
-      instrumentY.Chart.Name = _assetY;
-      instrumentY.Chart.Area = _assetY;
-      instrumentY.Chart.Shape = nameof(ShapeEnum.Candle);
+      //instrumentY.Chart.Name = _assetY;
+      //instrumentY.Chart.Area = _assetY;
+      //instrumentY.Chart.Shape = nameof(ShapeEnum.Candle);
 
-      _scaleIndicatorX.Chart.Name = _scaleIndicatorX.Name;
-      _scaleIndicatorX.Chart.Area = "Indicators";
-      _scaleIndicatorX.Chart.Shape = nameof(ShapeEnum.Line);
+      //_scaleIndicatorX.Chart.Name = _scaleIndicatorX.Name;
+      //_scaleIndicatorX.Chart.Area = "Indicators";
+      //_scaleIndicatorX.Chart.Shape = nameof(ShapeEnum.Line);
 
-      _scaleIndicatorY.Chart.Name = _scaleIndicatorY.Name;
-      _scaleIndicatorY.Chart.Area = "Indicators";
-      _scaleIndicatorY.Chart.Shape = nameof(ShapeEnum.Line);
+      //_scaleIndicatorY.Chart.Name = _scaleIndicatorY.Name;
+      //_scaleIndicatorY.Chart.Area = "Indicators";
+      //_scaleIndicatorY.Chart.Shape = nameof(ShapeEnum.Line);
 
-      _performanceIndicator.Chart.Name = _account;
-      _performanceIndicator.Chart.Area = "Performance";
-      _performanceIndicator.Chart.Shape = nameof(ShapeEnum.Area);
+      //_performanceIndicator.Chart.Name = _account;
+      //_performanceIndicator.Chart.Area = "Performance";
+      //_performanceIndicator.Chart.Shape = nameof(ShapeEnum.Area);
 
-      Charts.Add(instrumentX.Chart);
-      Charts.Add(instrumentY.Chart);
-      Charts.Add(_scaleIndicatorX.Chart);
-      Charts.Add(_scaleIndicatorY.Chart);
-      Charts.Add(_performanceIndicator.Chart);
+      //Charts.Add(instrumentX.Chart);
+      //Charts.Add(instrumentY.Chart);
+      //Charts.Add(_scaleIndicatorX.Chart);
+      //Charts.Add(_scaleIndicatorY.Chart);
+      //Charts.Add(_performanceIndicator.Chart);
     }
   }
 }

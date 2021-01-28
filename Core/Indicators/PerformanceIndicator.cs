@@ -28,8 +28,8 @@ namespace Core.IndicatorSpace
       currentPoint.Series[Name] = currentPoint.Series.TryGetValue(Name, out IPointModel seriesItem) ? seriesItem : new PerformanceIndicator();
       currentPoint.Series[Name].Time = currentPoint.Time;
       currentPoint.Series[Name].TimeFrame = currentPoint.TimeFrame;
-      currentPoint.Series[Name].Chart = Chart;
       currentPoint.Series[Name].Bar.Close = currentPoint.Series[Name].Last = accounts.Sum(o => o.Balance + o.ActivePositions.Sum(v => v.GainLossAverageEstimate));
+      currentPoint.Series[Name].ChartData = ChartData;
 
       Last = Bar.Close = currentPoint.Series[Name].Bar.Close;
 

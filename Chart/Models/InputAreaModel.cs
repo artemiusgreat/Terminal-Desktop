@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Chart.ModelSpace
 {
-  public interface IAreaModel : IModel
+  public interface IInputAreaModel : IModel
   {
     /// <summary>
     /// Name
@@ -12,10 +12,10 @@ namespace Chart.ModelSpace
     /// <summary>
     /// Series
     /// </summary>
-    IDictionary<string, ISeriesModel> Series { get; set; }
+    IDictionary<string, IInputSeriesModel> Series { get; set; }
   }
 
-  public class AreaModel : BaseModel, IAreaModel
+  public class InputAreaModel : BaseModel, IInputAreaModel
   {
     /// <summary>
     /// Name
@@ -25,6 +25,6 @@ namespace Chart.ModelSpace
     /// <summary>
     /// Series
     /// </summary>
-    public virtual IDictionary<string, ISeriesModel> Series { get; set; } = new Dictionary<string, ISeriesModel>();
+    public virtual IDictionary<string, IInputSeriesModel> Series { get; set; } = new Dictionary<string, IInputSeriesModel>();
   }
 }

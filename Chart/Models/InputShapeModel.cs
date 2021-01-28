@@ -3,7 +3,7 @@ using System.Windows.Media;
 
 namespace Chart.ModelSpace
 {
-  public interface IShapeModel : IModel
+  public interface IInputShapeModel : IModel
   {
     /// <summary>
     /// Size
@@ -21,7 +21,7 @@ namespace Chart.ModelSpace
     TextAlignment Position { get; set; }
   }
 
-  public class ShapeModel : BaseModel, IShapeModel
+  public class InputShapeModel : BaseModel, IInputShapeModel
   {
     /// <summary>
     /// Size

@@ -22,10 +22,10 @@ namespace Client.ControlSpace
   public partial class TimeSeriesControl : UserControl
   {
     private IList<IInputModel> _points = new List<IInputModel>();
+    private IList<IChartModel> _groups = new List<IChartModel>();
     private IList<IDisposable> _disposables = new List<IDisposable>();
     private IList<ComponentComposer> _composers = new List<ComponentComposer>();
     private IDictionary<long, IInputModel> _cache = new Dictionary<long, IInputModel>();
-    private IDictionary<string, IDictionary<string, ISeries>> _groups = new Dictionary<string, IDictionary<string, ISeries>>();
 
     /// <summary>
     /// Point groups
@@ -80,35 +80,37 @@ namespace Client.ControlSpace
         .Instance
         .Items;
 
-      var chartGroups = processors
-        .SelectMany(o => o.Charts)
-        .GroupBy(o => o.Area)
-        .ToDictionary(o => o.Key, o => o.ToList());
+      // Create chart areas
 
-      _groups = chartGroups.ToDictionary(
-        areaGroup => areaGroup.Key,
-        areaGroup => areaGroup.Value
-          .GroupBy(o => o.Name)
-          .ToDictionary(
-            seriesGroup => seriesGroup.Key,
-            seriesGroup =>
-            {
-              var chartType = seriesGroup.FirstOrDefault().Shape;
-
-              switch (chartType)
-              {
-                case nameof(ShapeEnum.Bar): return new BarSeries();
-                case nameof(ShapeEnum.Area): return new AreaSeries();
-                case nameof(ShapeEnum.Arrow): return new ArrowSeries();
-                case nameof(ShapeEnum.Candle): return new CandleSeries();
-              }
-
-              return new LineSeries() as ISeries;
-
-            }) as IDictionary<string, ISeries>);
-
-      foreach (var area in _groups)
+      foreach (var area in processors.SelectMany(processor => processor.Charts))
       {
+        var seriesModels = area.ChartData.ToDictionary(o => o.Key, o =>
+        {
+          var shape = new LineSeries() as ISeries;
+
+          switch (o.Value.Shape)
+          {
+            case nameof(ShapeEnum.Bar): shape = new BarSeries(); break;
+            case nameof(ShapeEnum.Line): shape = new AreaSeries(); break;
+            case nameof(ShapeEnum.Area): shape = new AreaSeries(); break;
+            case nameof(ShapeEnum.Arrow): shape = new ArrowSeries(); break;
+            case nameof(ShapeEnum.Candle): shape = new CandleSeries(); break;
+          }
+
+          return new InputSeriesModel
+          {
+            Name = o.Value.Name,
+            Shape = shape
+
+          } as IInputSeriesModel;
+        });
+
+        var areaModel = new InputAreaModel
+        {
+          Name = area.Name,
+          Series = seriesModels
+        };
+
         var chartControl = new ChartControl
         {
           Composers = _composers,
@@ -119,10 +121,10 @@ namespace Client.ControlSpace
 
         var composer = new ComponentComposer
         {
-          Name = area.Key,
-          Groups = _groups,
+          Group = areaModel,
+          Name = area.Name,
           Control = chartControl,
-          ValueCenter = chartGroups[area.Key].Any(o => o.Center.HasValue) ? chartGroups[area.Key].Max(o => o.Center ?? 0) : null,
+          ValueCenter = area.Center,
           ShowIndexAction = (i) =>
           {
             var date =
@@ -178,9 +180,8 @@ namespace Client.ControlSpace
     private void CreateSubscriptions()
     {
       var processors = InstanceManager<ResponseModel<IProcessorModel>>.Instance.Items;
-      var charts = processors.SelectMany(o => o.Charts);
-      var areaGroups = charts.GroupBy(o => o.Area).ToDictionary(o => o.Key, o => o.ToList());
-      var seriesGroups = charts.GroupBy(o => o.Name).ToDictionary(o => o.Key, o => o.ToList());
+      var charts = _groups = processors.SelectMany(o => o.Charts).ToList();
+      var areaGroups = charts.GroupBy(o => o.Name).ToDictionary(o => o.Key, o => o.FirstOrDefault());
       var gateways = processors.SelectMany(processor => processor.Gateways);
 
       _disposables.Add(gateways
@@ -194,7 +195,12 @@ namespace Client.ControlSpace
 
             foreach (var seriesItem in message.Next.Series.Values)
             {
-              if (seriesGroups.ContainsKey(seriesItem.Chart.Name))
+              if (seriesItem?.ChartData?.Area == null)
+              {
+                continue;
+              }
+
+              if (areaGroups.ContainsKey(seriesItem.ChartData.Area))
               {
                 UpdatePoint(seriesItem);
               }
@@ -215,7 +221,7 @@ namespace Client.ControlSpace
             {
               composer.UpdateLevels(null, message
                 .Next
-                .Where(o => Equals(composer.Name, o.Instrument.Chart.Area))
+                .Where(o => Equals(composer.Name, o.Instrument.ChartData.Area))
                 .Select(o => o.Price.Value)
                 .ToList());
 
@@ -236,12 +242,12 @@ namespace Client.ControlSpace
               .Next
               .Instrument;
 
-            if (areaGroups.TryGetValue(instrument.Chart.Area, out List<IChartModel> chartModels))
+            if (areaGroups.TryGetValue(instrument.ChartData.Area, out IChartModel chartModels))
             {
               var direction = 0.0;
-              var chartModel = chartModels.FirstOrDefault(o => Equals(o.Shape, nameof(ShapeEnum.Arrow)));
+              var chartData = chartModels.ChartData.FirstOrDefault(o => Equals(o.Value.Shape, nameof(ShapeEnum.Arrow))).Value;
 
-              if (chartModel == null)
+              if (chartData == null)
               {
                 return;
               }
@@ -254,7 +260,7 @@ namespace Client.ControlSpace
 
               var pointModel = new PointModel
               {
-                Chart = chartModel,
+                ChartData = chartData,
                 Time = _points.Last().Time,
                 Bar = new PointBarModel
                 {
@@ -276,6 +282,11 @@ namespace Client.ControlSpace
     /// <param name="direction"></param>
     private void UpdatePoint(IPointModel pointModel, double direction = 0.0)
     {
+      if (pointModel.ChartData.Area == null || pointModel.ChartData.Name == null)
+      {
+        return;
+      }
+
       dynamic value = new ExpandoObject();
 
       value.Direction = direction;
@@ -285,9 +296,9 @@ namespace Client.ControlSpace
       value.Close = pointModel.Bar?.Close;
       value.Point = pointModel.Bar?.Close;
 
-      var color = pointModel.Chart.Color;
+      var color = pointModel.ChartData.Color;
 
-      switch (pointModel.Chart.Shape)
+      switch (pointModel.ChartData.Shape)
       {
         case nameof(ShapeEnum.Line): value.Color = Brushes.Black.Color; break;
         case nameof(ShapeEnum.Arrow): value.Color = Brushes.Black.Color; break;
@@ -310,8 +321,8 @@ namespace Client.ControlSpace
       if (Span.HasValue && _cache.TryGetValue(pointModel.Time.Value.Ticks, out IInputModel updateModel))
       {
         updateModel
-          .Areas[pointModel.Chart.Area]
-          .Series[pointModel.Chart.Name]
+          .Areas[pointModel.ChartData.Area]
+          .Series[pointModel.ChartData.Name]
           .Model = value;
 
         return;
@@ -322,26 +333,26 @@ namespace Client.ControlSpace
       var createModel = new InputModel
       {
         Time = pointModel.Time.Value,
-        Areas = new Dictionary<string, IAreaModel>()
+        Areas = new Dictionary<string, IInputAreaModel>()
       };
 
       foreach (var area in _groups)
       {
-        createModel.Areas[area.Key] =
-          createModel.Areas.ContainsKey(area.Key) ?
-          createModel.Areas[area.Key] :
-          new AreaModel
+        createModel.Areas[area.Name] =
+          createModel.Areas.ContainsKey(area.Name) ?
+          createModel.Areas[area.Name] :
+          new InputAreaModel
           {
-            Name = area.Key,
-            Series = new Dictionary<string, ISeriesModel>()
+            Name = area.Name,
+            Series = new Dictionary<string, IInputSeriesModel>()
           };
 
-        foreach (var series in area.Value)
+        foreach (var series in area.ChartData)
         {
-          createModel.Areas[area.Key].Series[series.Key] =
-            createModel.Areas[area.Key].Series.ContainsKey(series.Key) ?
-            createModel.Areas[area.Key].Series[series.Key] :
-            new SeriesModel
+          createModel.Areas[area.Name].Series[series.Key] =
+            createModel.Areas[area.Name].Series.ContainsKey(series.Key) ?
+            createModel.Areas[area.Name].Series[series.Key] :
+            new InputSeriesModel
             {
               Name = series.Key,
               Model = null
@@ -350,8 +361,8 @@ namespace Client.ControlSpace
       }
 
       createModel
-        .Areas[pointModel.Chart.Area]
-        .Series[pointModel.Chart.Name]
+        .Areas[pointModel.ChartData.Area]
+        .Series[pointModel.ChartData.Name]
         .Model = value;
 
       _cache[pointModel.Time.Value.Ticks] = createModel;

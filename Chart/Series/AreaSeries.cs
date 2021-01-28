@@ -23,7 +23,7 @@ namespace Chart.SeriesSpace
         return;
       }
 
-      var shapeModel = new ShapeModel
+      var shapeModel = new InputShapeModel
       {
         Size = 1,
         Color = currentModel.Color ?? Color

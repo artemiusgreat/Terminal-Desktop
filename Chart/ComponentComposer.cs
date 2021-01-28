@@ -31,10 +31,10 @@ namespace Chart
     public virtual int? IndexLabelCount { get; set; } = 10;
     public virtual double? ValueCenter { get; set; }
     public virtual ChartControl Control { get; set; }
+    public virtual IInputAreaModel Group { get; set; } = new InputAreaModel();
     public virtual IList<int> IndexDomain { get; set; }
     public virtual IList<double> ValueDomain { get; set; }
     public virtual IList<IInputModel> Items { get; set; } = new List<IInputModel>();
-    public virtual IDictionary<string, IDictionary<string, ISeries>> Groups { get; set; } = new Dictionary<string, IDictionary<string, ISeries>>();
     public virtual Func<dynamic, dynamic> ShowIndexAction { get; set; }
     public virtual Func<dynamic, dynamic> ShowValueAction { get; set; }
 
@@ -243,18 +243,16 @@ namespace Chart
       {
         var currentItem = Items.ElementAtOrDefault(i);
 
-        if (currentItem == null)
+        if (currentItem == null || Group.Series == null)
         {
           continue;
         }
 
-        Groups.TryGetValue(Name, out IDictionary<string, ISeries> seriesItems);
-
-        foreach (var series in seriesItems)
+        foreach (var series in Group.Series)
         {
-          series.Value.Panel = panel;
-          series.Value.Composer = this;
-          series.Value.CreateItem(i, series.Key, Items);
+          series.Value.Shape.Panel = panel;
+          series.Value.Shape.Composer = this;
+          series.Value.Shape.CreateItem(i, series.Key, Items);
         }
       }
 
@@ -332,19 +330,17 @@ namespace Chart
       {
         var currentItem = Items.ElementAtOrDefault(i);
 
-        if (currentItem == null)
+        if (currentItem == null || Group.Series == null)
         {
           continue;
         }
 
-        Groups.TryGetValue(Name, out IDictionary<string, ISeries> seriesItems);
-
-        foreach (var series in seriesItems)
+        foreach (var series in Group.Series)
         {
-          series.Value.Panel = panel;
-          series.Value.Composer = this;
+          series.Value.Shape.Panel = panel;
+          series.Value.Shape.Composer = this;
 
-          var domain = series.Value.CreateDomain(i, series.Key, Items);
+          var domain = series.Value.Shape.CreateDomain(i, series.Key, Items);
 
           if (domain != null)
           {

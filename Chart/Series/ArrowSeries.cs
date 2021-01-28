@@ -24,7 +24,7 @@ namespace Chart.SeriesSpace
 
       var size = Panel.W / (Composer.MaxIndex - Composer.MinIndex) / 3;
 
-      var shapeModel = new ShapeModel
+      var shapeModel = new InputShapeModel
       {
         Size = 1,
         Color = currentModel.Color ?? Color
