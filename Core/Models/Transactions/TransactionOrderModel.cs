@@ -100,10 +100,10 @@ namespace Core.ModelSpace
       Include(new TransactionOrderValidation());
 
       When(o => _immediateTypes.Contains(o.Type) == false, () => RuleFor(o => o.Price).NotNull().NotEqual(0).WithMessage("No open price"));
-      When(o => Equals(o.Type, TransactionTypeEnum.BuyStop), () => RuleFor(o => o.Price).GreaterThanOrEqualTo(o => o.Instrument.Points.Last().Ask).WithMessage("Buy stop is below the offer"));
-      When(o => Equals(o.Type, TransactionTypeEnum.SellStop), () => RuleFor(o => o.Price).LessThanOrEqualTo(o => o.Instrument.Points.Last().Bid).WithMessage("Sell stop is above the bid"));
-      When(o => Equals(o.Type, TransactionTypeEnum.BuyLimit), () => RuleFor(o => o.Price).LessThanOrEqualTo(o => o.Instrument.Points.Last().Ask).WithMessage("Buy limit is above the offer"));
-      When(o => Equals(o.Type, TransactionTypeEnum.SellLimit), () => RuleFor(o => o.Price).GreaterThanOrEqualTo(o => o.Instrument.Points.Last().Bid).WithMessage("Sell limit is below the bid"));
+      When(o => Equals(o.Type, TransactionTypeEnum.BuyStop), () => RuleFor(o => o.Price).GreaterThanOrEqualTo(o => o.Instrument.PointGroups.Last().Ask).WithMessage("Buy stop is below the offer"));
+      When(o => Equals(o.Type, TransactionTypeEnum.SellStop), () => RuleFor(o => o.Price).LessThanOrEqualTo(o => o.Instrument.PointGroups.Last().Bid).WithMessage("Sell stop is above the bid"));
+      When(o => Equals(o.Type, TransactionTypeEnum.BuyLimit), () => RuleFor(o => o.Price).LessThanOrEqualTo(o => o.Instrument.PointGroups.Last().Ask).WithMessage("Buy limit is above the offer"));
+      When(o => Equals(o.Type, TransactionTypeEnum.SellLimit), () => RuleFor(o => o.Price).GreaterThanOrEqualTo(o => o.Instrument.PointGroups.Last().Bid).WithMessage("Sell limit is below the bid"));
     }
   }
 }

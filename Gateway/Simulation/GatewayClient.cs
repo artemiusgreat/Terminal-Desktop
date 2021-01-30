@@ -70,7 +70,7 @@ namespace Gateway.Simulation
 
       var pointSubscription = Account
         .Instruments
-        .Select(o => o.Value.Points.ItemStream)
+        .Select(o => o.Value.PointGroups.ItemStream)
         .Merge()
         .Subscribe(message => ProcessPendingOrders());
 
@@ -304,7 +304,7 @@ namespace Gateway.Simulation
 
       var pointModel = nextOrder
         .Instrument
-        .Points
+        .PointGroups
         .LastOrDefault();
 
       foreach (var order in nextOrder.Orders)
@@ -331,7 +331,7 @@ namespace Gateway.Simulation
       }
 
       var openPrices = GetOpenPrices(nextOrder);
-      var pointModel = nextOrder.Instrument.Points.LastOrDefault();
+      var pointModel = nextOrder.Instrument.PointGroups.LastOrDefault();
 
       nextOrder.Time = pointModel.Time;
       nextOrder.Price = openPrices.Last().Price;
@@ -374,7 +374,7 @@ namespace Gateway.Simulation
       }
 
       var openPrices = GetOpenPrices(nextOrder);
-      var pointModel = nextOrder.Instrument.Points.LastOrDefault();
+      var pointModel = nextOrder.Instrument.PointGroups.LastOrDefault();
 
       nextOrder.Type = nextSide;
       nextOrder.Time = pointModel.Time;
@@ -428,7 +428,7 @@ namespace Gateway.Simulation
       }
 
       var openPrices = GetOpenPrices(nextOrder);
-      var pointModel = nextOrder.Instrument.Points.LastOrDefault();
+      var pointModel = nextOrder.Instrument.PointGroups.LastOrDefault();
 
       nextOrder.Type = nextSide;
       nextOrder.Time = pointModel.Time;
@@ -491,7 +491,7 @@ namespace Gateway.Simulation
     protected virtual IList<ITransactionOrderModel> GetOpenPrices(ITransactionOrderModel nextOrder)
     {
       var openPrice = nextOrder.Price;
-      var pointModel = nextOrder.Instrument.Points.LastOrDefault();
+      var pointModel = nextOrder.Instrument.PointGroups.LastOrDefault();
 
       if (ConversionManager.Equals(openPrice ?? 0.0, 0.0))
       {
@@ -518,7 +518,7 @@ namespace Gateway.Simulation
       {
         var executable = false;
         var order = Account.ActiveOrders[i];
-        var pointModel = order.Instrument.Points.LastOrDefault();
+        var pointModel = order.Instrument.PointGroups.LastOrDefault();
 
         if (pointModel != null)
         {

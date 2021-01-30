@@ -154,7 +154,7 @@ namespace Core.ModelSpace
     {
       get
       {
-        var point = Instrument.Points.LastOrDefault();
+        var point = Instrument.PointGroups.LastOrDefault();
 
         if (point != null)
         {
