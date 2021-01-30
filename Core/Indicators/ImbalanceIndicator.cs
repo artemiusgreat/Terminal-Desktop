@@ -13,14 +13,14 @@ namespace Core.IndicatorSpace
     /// <summary>
     /// Preserve last calculated value
     /// </summary>
-    public ITimeSpanCollection<IPointModel> Values { get; private set; } = new TimeSpanCollection<IPointModel>();
+    public IIndexCollection<IPointModel> Values { get; private set; } = new IndexCollection<IPointModel>();
 
     /// <summary>
     /// Calculate indicator value
     /// </summary>
     /// <param name="currentPoint"></param>
     /// <returns></returns>
-    public ImbalanceIndicator Calculate(ITimeCollection<IPointModel> collection, int direction = 0)
+    public ImbalanceIndicator Calculate(IIndexCollection<IPointModel> collection, int direction = 0)
     {
       var currentPoint = collection.ElementAtOrDefault(collection.Count - 1);
 
@@ -61,7 +61,14 @@ namespace Core.IndicatorSpace
         }
       };
 
-      Values.Add(nextIndicatorPoint, nextIndicatorPoint.TimeFrame);
+      var previousIndicatorPoint = Values.ElementAtOrDefault(collection.Count - 1);
+
+      if (previousIndicatorPoint == null)
+      {
+        Values.Add(nextIndicatorPoint);
+      }
+
+      Values[collection.Count - 1] = nextIndicatorPoint;
 
       return this;
     }

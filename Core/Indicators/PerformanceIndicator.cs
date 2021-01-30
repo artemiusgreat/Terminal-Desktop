@@ -16,7 +16,7 @@ namespace Core.IndicatorSpace
     /// </summary>
     /// <param name="currentPoint"></param>
     /// <returns></returns>
-    public PerformanceIndicator Calculate(ITimeCollection<IPointModel> collection, IEnumerable<IAccountModel> accounts)
+    public PerformanceIndicator Calculate(IIndexCollection<IPointModel> collection, IEnumerable<IAccountModel> accounts)
     {
       var currentPoint = collection.ElementAtOrDefault(collection.Count - 1);
 

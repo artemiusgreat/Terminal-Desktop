@@ -102,8 +102,20 @@ namespace Core.ModelSpace
       point.Name = point.Instrument.Name;
       point.ChartData = point.Instrument.ChartData;
       point.TimeFrame = point.Instrument.TimeFrame;
+
+      UpdatePoints(point);
+
+      return point;
+    }
+
+    /// <summary>
+    /// Update collection with points
+    /// </summary>
+    /// <param name="point"></param>
+    protected virtual IPointModel UpdatePoints(IPointModel point)
+    {
       point.Instrument.Points.Add(point);
-      point.Instrument.PointGroups.Add(point, point.Instrument.TimeFrame);
+      point.Instrument.PointGroups.Add(point);
 
       return point;
     }

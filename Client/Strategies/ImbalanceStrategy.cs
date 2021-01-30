@@ -12,6 +12,30 @@ using System.Threading.Tasks;
 
 namespace Client.StrategySpace
 {
+  /// <summary>
+  /// Gateway with aggregation by time
+  /// </summary>
+  public class TimeGatewayClient : GatewayClient
+  {
+    protected ITimeSpanCollection<IPointModel> _collection = new TimeSpanCollection<IPointModel>();
+
+    public TimeGatewayClient(IInstrumentModel instrument)
+    {
+      instrument.PointGroups = _collection;
+    }
+
+    protected override IPointModel UpdatePoints(IPointModel point)
+    {
+      point.Instrument.Points.Add(point);
+      _collection.Add(point, point.Instrument.TimeFrame);
+
+      return point;
+    }
+  }
+
+  /// <summary>
+  /// Strategy
+  /// </summary>
   public class ImbalanceStrategy : BaseStrategy
   {
     const string _asset = "GOOG";
@@ -42,7 +66,7 @@ namespace Client.StrategySpace
         Instruments = new NameCollection<string, IInstrumentModel> { [_asset] = _instrument }
       };
 
-      var gateway = new GatewayClient
+      var gateway = new TimeGatewayClient(_instrument)
       {
         Name = _account,
         Account = account,
@@ -91,16 +115,16 @@ namespace Client.StrategySpace
           if (isShort) CreateOrder(point, TransactionTypeEnum.Sell, 1);
         }
 
-        //if (account.ActivePositions.Count > 0)
-        //{
-        //  var activePosition = account.ActivePositions.Last();
+        if (account.ActivePositions.Count > 0)
+        {
+          var activePosition = account.ActivePositions.Last();
 
-        //  switch (activePosition.Type)
-        //  {
-        //    case TransactionTypeEnum.Buy: if (isShort) CreateOrder(point, TransactionTypeEnum.Sell, activePosition.Size.Value + 1); break;
-        //    case TransactionTypeEnum.Sell: if (isLong) CreateOrder(point, TransactionTypeEnum.Buy, activePosition.Size.Value + 1); break;
-        //  }
-        //}
+          switch (activePosition.Type)
+          {
+            case TransactionTypeEnum.Buy: if (isShort) CreateOrder(point, TransactionTypeEnum.Sell, activePosition.Size.Value + 1); break;
+            case TransactionTypeEnum.Sell: if (isLong) CreateOrder(point, TransactionTypeEnum.Buy, activePosition.Size.Value + 1); break;
+          }
+        }
       }
     }
 
@@ -139,52 +163,52 @@ namespace Client.StrategySpace
         Instrument = instrument
       };
 
-      switch (side)
-      {
-        case TransactionTypeEnum.Buy:
+      //switch (side)
+      //{
+      //  case TransactionTypeEnum.Buy:
 
-          order.Orders.Add(new TransactionOrderModel
-          {
-            Size = size,
-            Type = TransactionTypeEnum.SellLimit,
-            Price = point.Ask + 2,
-            Instrument = instrument,
-            Container = order
-          });
+      //    order.Orders.Add(new TransactionOrderModel
+      //    {
+      //      Size = size,
+      //      Type = TransactionTypeEnum.SellLimit,
+      //      Price = point.Ask + 2,
+      //      Instrument = instrument,
+      //      Container = order
+      //    });
 
-          order.Orders.Add(new TransactionOrderModel
-          {
-            Size = size,
-            Type = TransactionTypeEnum.SellStop,
-            Price = point.Bid - 2,
-            Instrument = instrument,
-            Container = order
-          });
+      //    order.Orders.Add(new TransactionOrderModel
+      //    {
+      //      Size = size,
+      //      Type = TransactionTypeEnum.SellStop,
+      //      Price = point.Bid - 2,
+      //      Instrument = instrument,
+      //      Container = order
+      //    });
 
-          break;
+      //    break;
 
-        case TransactionTypeEnum.Sell:
+      //  case TransactionTypeEnum.Sell:
 
-          order.Orders.Add(new TransactionOrderModel
-          {
-            Size = size,
-            Type = TransactionTypeEnum.SellStop,
-            Price = point.Bid + 2,
-            Instrument = instrument,
-            Container = order
-          });
+      //    order.Orders.Add(new TransactionOrderModel
+      //    {
+      //      Size = size,
+      //      Type = TransactionTypeEnum.SellStop,
+      //      Price = point.Bid + 2,
+      //      Instrument = instrument,
+      //      Container = order
+      //    });
 
-          order.Orders.Add(new TransactionOrderModel
-          {
-            Size = size,
-            Type = TransactionTypeEnum.BuyLimit,
-            Price = point.Ask - 2,
-            Instrument = instrument,
-            Container = order
-          });
+      //    order.Orders.Add(new TransactionOrderModel
+      //    {
+      //      Size = size,
+      //      Type = TransactionTypeEnum.BuyLimit,
+      //      Price = point.Ask - 2,
+      //      Instrument = instrument,
+      //      Container = order
+      //    });
 
-          break;
-      }
+      //    break;
+      //}
 
       gateway.OrderSenderStream.OnNext(new TransactionMessage<ITransactionOrderModel>
       {

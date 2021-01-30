@@ -13,7 +13,7 @@ namespace Core.ModelSpace
     /// </summary>
     /// <param name="collection"></param>
     /// <returns></returns>
-    TOutput Calculate(ITimeCollection<TInput> collection);
+    TOutput Calculate(IIndexCollection<TInput> collection);
   }
 
   /// <summary>
@@ -44,7 +44,7 @@ namespace Core.ModelSpace
     /// </summary>
     /// <param name="collection"></param>
     /// <returns></returns>
-    public virtual TOutput Calculate(ITimeCollection<TInput> collection)
+    public virtual TOutput Calculate(IIndexCollection<TInput> collection)
     {
       return default;
     }

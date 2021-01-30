@@ -331,7 +331,7 @@ namespace Gateway.Simulation
       }
 
       var openPrices = GetOpenPrices(nextOrder);
-      var pointModel = nextOrder.Instrument.PointGroups.LastOrDefault();
+      var pointModel = nextOrder.Instrument.Points.LastOrDefault();
 
       nextOrder.Time = pointModel.Time;
       nextOrder.Price = openPrices.Last().Price;
@@ -374,7 +374,7 @@ namespace Gateway.Simulation
       }
 
       var openPrices = GetOpenPrices(nextOrder);
-      var pointModel = nextOrder.Instrument.PointGroups.LastOrDefault();
+      var pointModel = nextOrder.Instrument.Points.LastOrDefault();
 
       nextOrder.Type = nextSide;
       nextOrder.Time = pointModel.Time;
@@ -428,7 +428,7 @@ namespace Gateway.Simulation
       }
 
       var openPrices = GetOpenPrices(nextOrder);
-      var pointModel = nextOrder.Instrument.PointGroups.LastOrDefault();
+      var pointModel = nextOrder.Instrument.Points.LastOrDefault();
 
       nextOrder.Type = nextSide;
       nextOrder.Time = pointModel.Time;
@@ -491,7 +491,7 @@ namespace Gateway.Simulation
     protected virtual IList<ITransactionOrderModel> GetOpenPrices(ITransactionOrderModel nextOrder)
     {
       var openPrice = nextOrder.Price;
-      var pointModel = nextOrder.Instrument.PointGroups.LastOrDefault();
+      var pointModel = nextOrder.Instrument.Points.LastOrDefault();
 
       if (ConversionManager.Equals(openPrice ?? 0.0, 0.0))
       {

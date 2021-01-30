@@ -19,14 +19,14 @@ namespace Core.IndicatorSpace
     /// <summary>
     /// Preserve last calculated value
     /// </summary>
-    public ITimeSpanCollection<IPointModel> Values { get; private set; } = new TimeSpanCollection<IPointModel>();
+    public IIndexCollection<IPointModel> Values { get; private set; } = new IndexCollection<IPointModel>();
 
     /// <summary>
     /// Calculate single value
     /// </summary>
     /// <param name="collection"></param>
     /// <returns></returns>
-    public override AverageTrueRangeIndicator Calculate(ITimeCollection<IPointModel> collection)
+    public override AverageTrueRangeIndicator Calculate(IIndexCollection<IPointModel> collection)
     {
       var currentPoint = collection.ElementAtOrDefault(collection.Count - 1);
       var previousPoint = collection.ElementAtOrDefault(collection.Count - 2);
@@ -56,7 +56,14 @@ namespace Core.IndicatorSpace
         nextIndicatorPoint.Bar.Close = nextIndicatorPoint.Last = (Values.ElementAtOrDefault(Values.Count - 1).Bar.Close * Math.Max(Interval - 1, 0) + variance) / Interval;
       }
 
-      Values.Add(nextIndicatorPoint, nextIndicatorPoint.TimeFrame);
+      var previousIndicatorPoint = Values.ElementAtOrDefault(collection.Count - 1);
+
+      if (previousIndicatorPoint == null)
+      {
+        Values.Add(nextIndicatorPoint);
+      }
+
+      Values[collection.Count - 1] = nextIndicatorPoint;
 
       currentPoint.Series[Name] = currentPoint.Series.TryGetValue(Name, out IPointModel o) ? o : new AverageTrueRangeIndicator();
       currentPoint.Series[Name].Bar.Close = currentPoint.Series[Name].Last = nextIndicatorPoint.Bar.Close;

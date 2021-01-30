@@ -30,7 +30,7 @@ namespace Core.IndicatorSpace
     /// <summary>
     /// Preserve last calculated value
     /// </summary>
-    public ITimeSpanCollection<IPointModel> Values { get; private set; } = new TimeSpanCollection<IPointModel>();
+    public IIndexCollection<IPointModel> Values { get; private set; } = new IndexCollection<IPointModel>();
 
     /// <summary>
     /// Preserve last calculated min value
@@ -47,7 +47,7 @@ namespace Core.IndicatorSpace
     /// </summary>
     /// <param name="collection"></param>
     /// <returns></returns>
-    public override ScaleIndicator Calculate(ITimeCollection<IPointModel> collection)
+    public override ScaleIndicator Calculate(IIndexCollection<IPointModel> collection)
     {
       var currentPoint = collection.ElementAtOrDefault(collection.Count - 1);
 
@@ -62,6 +62,7 @@ namespace Core.IndicatorSpace
       _max = _max == null ? pointValue : Math.Max(_max.Value, pointValue);
 
       var nextValue = ConversionManager.Equals(_min, _max) ? 0.0 : Min + (pointValue - _min.Value) * (Max - Min) / (_max.Value - _min.Value);
+
       var nextIndicatorPoint = new PointModel
       {
         Time = currentPoint.Time,
@@ -73,7 +74,14 @@ namespace Core.IndicatorSpace
         }
       };
 
-      Values.Add(nextIndicatorPoint, nextIndicatorPoint.TimeFrame);
+      var previousIndicatorPoint = Values.ElementAtOrDefault(collection.Count - 1);
+
+      if (previousIndicatorPoint == null)
+      {
+        Values.Add(nextIndicatorPoint);
+      }
+
+      Values[collection.Count - 1] = nextIndicatorPoint;
 
       currentPoint.Series[Name] = currentPoint.Series.TryGetValue(Name, out IPointModel seriesItem) ? seriesItem : new ScaleIndicator();
       currentPoint.Series[Name].Bar.Close = currentPoint.Series[Name].Last = CalculationManager.LinearWeightAverage(Values.Select(o => o.Bar.Close.Value), Values.Count - 1, Interval);

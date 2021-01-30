@@ -211,7 +211,7 @@ namespace Gateway.Tradier
             var instrumentModel = Account.Instruments[pointModel.Instrument.Name];
 
             instrumentModel.Points.Add(pointModel);
-            instrumentModel.PointGroups.Add(pointModel, instrumentModel.TimeFrame);
+            instrumentModel.PointGroups.Add(pointModel);
 
             break;
 

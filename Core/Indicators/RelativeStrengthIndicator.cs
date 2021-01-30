@@ -21,14 +21,14 @@ namespace Core.IndicatorSpace
     /// <summary>
     /// Preserve last calculated value
     /// </summary>
-    public ITimeSpanCollection<IPointModel> Values { get; private set; } = new TimeSpanCollection<IPointModel>();
+    public IIndexCollection<IPointModel> Values { get; private set; } = new IndexCollection<IPointModel>();
 
     /// <summary>
     /// Calculate single value
     /// </summary>
     /// <param name="collection"></param>
     /// <returns></returns>
-    public override RelativeStrengthIndicator Calculate(ITimeCollection<IPointModel> collection)
+    public override RelativeStrengthIndicator Calculate(IIndexCollection<IPointModel> collection)
     {
       var currentPoint = collection.ElementAtOrDefault(collection.Count - 1);
 
@@ -67,7 +67,14 @@ namespace Core.IndicatorSpace
         }
       };
 
-      Values.Add(nextIndicatorPoint, nextIndicatorPoint.TimeFrame);
+      var previousIndicatorPoint = Values.ElementAtOrDefault(collection.Count - 1);
+
+      if (previousIndicatorPoint == null)
+      {
+        Values.Add(nextIndicatorPoint);
+      }
+
+      Values[collection.Count - 1] = nextIndicatorPoint;
 
       currentPoint.Series[Name] = currentPoint.Series.TryGetValue(Name, out IPointModel seriesItem) ? seriesItem : new RelativeStrengthIndicator();
       currentPoint.Series[Name].Bar.Close = currentPoint.Series[Name].Last = nextIndicatorPoint.Bar.Close;

@@ -67,12 +67,12 @@ namespace Core.ModelSpace
     /// <summary>
     /// List of all ticks from the server
     /// </summary>
-    ITimeSpanCollection<IPointModel> Points { get; set; }
+    IIndexCollection<IPointModel> Points { get; set; }
 
     /// <summary>
     /// List of all ticks from the server aggregated into bars
     /// </summary>
-    ITimeSpanCollection<IPointModel> PointGroups { get; set; }
+    IIndexCollection<IPointModel> PointGroups { get; set; }
   }
 
   /// <summary>
@@ -138,12 +138,12 @@ namespace Core.ModelSpace
     /// <summary>
     /// List of all ticks from the server
     /// </summary>
-    public virtual ITimeSpanCollection<IPointModel> Points { get; set; }
+    public virtual IIndexCollection<IPointModel> Points { get; set; }
 
     /// <summary>
     /// List of all ticks from the server aggregated into bars
     /// </summary>
-    public virtual ITimeSpanCollection<IPointModel> PointGroups { get; set; }
+    public virtual IIndexCollection<IPointModel> PointGroups { get; set; }
 
     /// <summary>
     /// Constructor
