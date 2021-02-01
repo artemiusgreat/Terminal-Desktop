@@ -1,3 +1,4 @@
+using Core.EnumSpace;
 using Core.MessageSpace;
 using FluentValidation;
 using FluentValidation.Results;
@@ -17,6 +18,11 @@ namespace Core.ModelSpace
     /// Reference to the account
     /// </summary>
     IAccountModel Account { get; set; }
+
+    /// <summary>
+    /// Incoming data event
+    /// </summary>
+    ISubject<ITransactionMessage<IPointModel>> DataStream { get; }
   }
 
   /// <summary>
@@ -25,7 +31,7 @@ namespace Core.ModelSpace
   public interface ITradeModel
   {
     /// <summary>
-    /// Order events sent to gateway
+    /// Send order event
     /// </summary>
     ISubject<ITransactionMessage<ITransactionOrderModel>> OrderSenderStream { get; }
   }
@@ -54,7 +60,12 @@ namespace Core.ModelSpace
     public virtual IAccountModel Account { get; set; }
 
     /// <summary>
-    /// Events
+    /// Incoming data event
+    /// </summary>
+    public virtual ISubject<ITransactionMessage<IPointModel>> DataStream { get; }
+
+    /// <summary>
+    /// Send order event
     /// </summary>
     public virtual ISubject<ITransactionMessage<ITransactionOrderModel>> OrderSenderStream { get; }
 
@@ -63,6 +74,7 @@ namespace Core.ModelSpace
     /// </summary>
     public GatewayModel()
     {
+      DataStream = new Subject<ITransactionMessage<IPointModel>>();
       OrderSenderStream = new Subject<ITransactionMessage<ITransactionOrderModel>>();
     }
 
@@ -104,6 +116,14 @@ namespace Core.ModelSpace
       point.TimeFrame = point.Instrument.TimeFrame;
 
       UpdatePoints(point);
+
+      var message = new TransactionMessage<IPointModel>
+      {
+        Action = ActionEnum.Create,
+        Next = instrument.PointGroups.LastOrDefault()
+      };
+
+      DataStream.OnNext(message);
 
       return point;
     }

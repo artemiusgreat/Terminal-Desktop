@@ -28,11 +28,6 @@ namespace Client.ControlSpace
     private IDictionary<long, IInputModel> _cache = new Dictionary<long, IInputModel>();
 
     /// <summary>
-    /// Point groups
-    /// </summary>
-    public TimeSpan? Span { get; set; }
-
-    /// <summary>
     /// Constructor
     /// </summary>
     public TimeSeriesControl()
@@ -91,7 +86,7 @@ namespace Client.ControlSpace
           switch (o.Value.Shape)
           {
             case nameof(ShapeEnum.Bar): shape = new BarSeries(); break;
-            case nameof(ShapeEnum.Line): shape = new AreaSeries(); break;
+            case nameof(ShapeEnum.Line): shape = new LineSeries(); break;
             case nameof(ShapeEnum.Area): shape = new AreaSeries(); break;
             case nameof(ShapeEnum.Arrow): shape = new ArrowSeries(); break;
             case nameof(ShapeEnum.Candle): shape = new CandleSeries(); break;
@@ -127,10 +122,15 @@ namespace Client.ControlSpace
           ValueCenter = area.Center,
           ShowIndexAction = (i) =>
           {
-            var date =
-              _points.ElementAtOrDefault((int)i)?.Time ??
-              _points.ElementAtOrDefault(0)?.Time ??
-              DateTime.Now;
+            var date = _points.ElementAtOrDefault(0)?.Time;
+
+            if (i > 0)
+            {
+              date =
+                _points.ElementAtOrDefault((int)i)?.Time ??
+                _points.ElementAtOrDefault(_points.Count - 1)?.Time ??
+                DateTime.Now;
+            }
 
             return $"{date:yyyy-MM-dd HH:mm}";
           }
@@ -184,8 +184,9 @@ namespace Client.ControlSpace
       var areaGroups = charts.GroupBy(o => o.Name).ToDictionary(o => o.Key, o => o.FirstOrDefault());
       var gateways = processors.SelectMany(processor => processor.Gateways);
 
-      _disposables.Add(gateways
-        .SelectMany(gateway => gateway.Account.Instruments.Values.Select(instrument => instrument.PointGroups.ItemStream))
+      _disposables
+        .Add(gateways
+        .Select(gateway => gateway.DataStream)
         .Merge()
         .Subscribe(message =>
         {
@@ -210,7 +211,8 @@ namespace Client.ControlSpace
           }
         }));
 
-      _disposables.Add(gateways
+      _disposables
+        .Add(gateways
         .Select(gateway => gateway.Account.ActiveOrders.CollectionStream)
         .Merge()
         .Subscribe(message =>
@@ -229,7 +231,8 @@ namespace Client.ControlSpace
           }
         }));
 
-      _disposables.Add(gateways
+      _disposables
+        .Add(gateways
         .Select(gateway => gateway.Account.ActivePositions.ItemStream)
         .Merge()
         .Subscribe(message =>
@@ -260,6 +263,7 @@ namespace Client.ControlSpace
 
               var pointModel = new PointModel
               {
+                Last = order.Price,
                 ChartData = chartData,
                 Time = _points.Last().Time,
                 Bar = new PointBarModel
@@ -290,11 +294,11 @@ namespace Client.ControlSpace
       dynamic value = new ExpandoObject();
 
       value.Direction = direction;
+      value.Point = pointModel?.Last;
       value.Low = pointModel?.Bar?.Low;
       value.High = pointModel?.Bar?.High;
       value.Open = pointModel?.Bar?.Open;
-      value.Close = pointModel.Bar?.Close;
-      value.Point = pointModel.Bar?.Close;
+      value.Close = pointModel?.Bar?.Close;
 
       var color = pointModel.ChartData.Color;
 
@@ -318,7 +322,7 @@ namespace Client.ControlSpace
 
       // Update
 
-      if (Span.HasValue && _cache.TryGetValue(pointModel.Time.Value.Ticks, out IInputModel updateModel))
+      if (_cache.TryGetValue(pointModel.Time.Value.Ticks, out IInputModel updateModel))
       {
         updateModel
           .Areas[pointModel.ChartData.Area]

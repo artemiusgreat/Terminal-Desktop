@@ -71,13 +71,13 @@ namespace Core.CollectionSpace
       nextGroup.Ask ??= nextPoint.Ask ?? nextPoint.Bid;
       nextGroup.Bid ??= nextPoint.Bid ?? nextPoint.Ask;
 
-      nextGroup.Bar.Open ??= previousPoint?.Last ?? nextGroup.Bid;
-      nextGroup.Bar.Close ??= nextGroup.Bid;
+      nextGroup.Bar.Open ??= previousPoint?.Last ?? nextGroup.Ask;
+      nextGroup.Bar.Close ??= previousPoint?.Last ?? nextGroup.Bid;
       nextGroup.Last ??= nextGroup.Bar.Close;
 
       nextGroup.TimeFrame = span;
       nextGroup.Time = ConversionManager.Round(nextPoint.Time, span);
-      nextGroup.Bar.Low ??= Math.Min(nextGroup.Ask.Value, nextGroup.Bid.Value);
+      nextGroup.Bar.Low ??= Math.Min(nextGroup.Bid.Value, nextGroup.Ask.Value);
       nextGroup.Bar.High ??= Math.Max(nextGroup.Ask.Value, nextGroup.Bid.Value);
 
       return (T)nextGroup;
@@ -110,7 +110,7 @@ namespace Core.CollectionSpace
         return (T)previousGroup;
       }
 
-      var min = Math.Min(nextGroup.Ask.Value, nextGroup.Bid.Value);
+      var min = Math.Min(nextGroup.Bid.Value, nextGroup.Ask.Value);
       var max = Math.Max(nextGroup.Ask.Value, nextGroup.Bid.Value);
 
       if (min < previousGroup.Bar.Low)

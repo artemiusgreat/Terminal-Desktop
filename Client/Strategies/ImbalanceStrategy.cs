@@ -15,11 +15,11 @@ namespace Client.StrategySpace
   /// <summary>
   /// Gateway with aggregation by time
   /// </summary>
-  public class TimeGatewayClient : GatewayClient
+  public class TimeBarGatewayClient : GatewayClient
   {
     protected ITimeSpanCollection<IPointModel> _collection = new TimeSpanCollection<IPointModel>();
 
-    public TimeGatewayClient(IInstrumentModel instrument)
+    public TimeBarGatewayClient(IInstrumentModel instrument)
     {
       instrument.PointGroups = _collection;
     }
@@ -49,7 +49,6 @@ namespace Client.StrategySpace
 
     public override Task OnLoad()
     {
-      _date = DateTime.MinValue;
       _span = TimeSpan.FromMinutes(1);
 
       _instrument = new InstrumentModel
@@ -66,7 +65,7 @@ namespace Client.StrategySpace
         Instruments = new NameCollection<string, IInstrumentModel> { [_asset] = _instrument }
       };
 
-      var gateway = new TimeGatewayClient(_instrument)
+      var gateway = new TimeBarGatewayClient(_instrument)
       {
         Name = _account,
         Account = account,
@@ -135,6 +134,8 @@ namespace Client.StrategySpace
     /// <returns></returns>
     protected bool IsNextPoint(IPointModel pointModel)
     {
+      _date ??= DateTime.MinValue;
+
       if (Equals(pointModel.Time, _date) == false)
       {
         _date = pointModel.Time;

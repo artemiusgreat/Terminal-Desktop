@@ -1,3 +1,4 @@
+using Core.ManagerSpace;
 using Core.ModelSpace;
 using System;
 
@@ -24,9 +25,15 @@ namespace Client.StrategySpace
         Time = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(dateTime),
         Ask = ask,
         Bid = bid,
+        Last = ask,
         AskSize = askSize,
         BidSize = bidSize
       };
+
+      if (ConversionManager.Equals(askSize, 0))
+      {
+        response.Last = bid;
+      }
 
       return response;
     }

@@ -109,6 +109,7 @@ namespace Core.ModelSpace
     /// </summary>
     public PointModel()
     {
+      Bar = new PointBarModel();
       ChartData = new ChartDataModel();
       Series = new Dictionary<string, IPointModel>();
     }

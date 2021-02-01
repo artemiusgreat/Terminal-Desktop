@@ -80,7 +80,7 @@ namespace Client.WindowSpace
 
       SetCurrentValue(ChartActionsProp, new Dictionary<string, Action>
       {
-        ["Time Series"] = () => OpenPopup("Time Series", new TimeSeriesControl { Span = TimeSpan.Zero })
+        ["Time Series"] = () => OpenPopup("Time Series", new TimeSeriesControl())
       });
 
       // Set statements menu

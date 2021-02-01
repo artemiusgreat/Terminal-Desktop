@@ -189,8 +189,6 @@ namespace Gateway.Simulation
       var name = Account.Instruments.Keys.ElementAt(index);
       var instrument = Account.Instruments[name];
 
-      _points[index].Bar ??= new PointBarModel();
-
       UpdatePointProps(_points[index], instrument);
 
       _points[index] = null;
