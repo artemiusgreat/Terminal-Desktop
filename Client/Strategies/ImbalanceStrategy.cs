@@ -15,11 +15,11 @@ namespace Client.StrategySpace
   /// <summary>
   /// Gateway with aggregation by time
   /// </summary>
-  public class TimeBarGatewayClient : GatewayClient
+  public class GroupGatewayClient : GatewayClient
   {
     protected ITimeSpanCollection<IPointModel> _collection = new TimeSpanCollection<IPointModel>();
 
-    public TimeBarGatewayClient(IInstrumentModel instrument)
+    public GroupGatewayClient(IInstrumentModel instrument)
     {
       instrument.PointGroups = _collection;
     }
@@ -65,7 +65,7 @@ namespace Client.StrategySpace
         Instruments = new NameCollection<string, IInstrumentModel> { [_asset] = _instrument }
       };
 
-      var gateway = new TimeBarGatewayClient(_instrument)
+      var gateway = new GroupGatewayClient(_instrument)
       {
         Name = _account,
         Account = account,
