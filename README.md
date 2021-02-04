@@ -29,7 +29,7 @@ In order to create connector for preferable broker, implement interface `IGatewa
 # Configuration 
 
 In order to connect to specific gateway, you need to provide relevant credentials by using `App.config` file in the `Client` project or directly in the source code. 
-Example of the configuration file for simulation gateway below. 
+Example of the configuration file for `Simulation` gateway below. 
 
 ```
 <?xml version="1.0" encoding="utf-8" ?>
