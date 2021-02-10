@@ -81,7 +81,7 @@ namespace Core.IndicatorSpace
       var average = CalculationManager.LinearWeightAverage(Values.Select(o => o.Bar.Close.Value), Values.Count - 1, Interval);
 
       currentPoint.Series[Name] = currentPoint.Series.TryGetValue(Name, out IPointModel seriesItem) ? seriesItem : new MovingAverageIndicator();
-      currentPoint.Series[Name].Bar.Close = currentPoint.Series[Name].Last = ConversionManager.Equals(average, 0) ? nextIndicatorPoint.Bar.Close : average;
+      currentPoint.Series[Name].Bar.Close = currentPoint.Series[Name].Last = ConversionManager.Compare(average, 0) ? nextIndicatorPoint.Bar.Close : average;
       currentPoint.Series[Name].Time = currentPoint.Time;
       currentPoint.Series[Name].ChartData = ChartData;
 

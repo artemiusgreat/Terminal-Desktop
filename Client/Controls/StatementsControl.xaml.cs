@@ -78,10 +78,10 @@ namespace Client.ControlSpace
     /// <returns></returns>
     protected int GetDirection(ITransactionPositionModel position)
     {
-      switch (position.Type)
+      switch (position.Side)
       {
-        case TransactionTypeEnum.Buy: return 1;
-        case TransactionTypeEnum.Sell: return -1;
+        case OrderSideEnum.Buy: return 1;
+        case OrderSideEnum.Sell: return -1;
       }
 
       return 0;

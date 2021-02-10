@@ -20,7 +20,12 @@ namespace Core.ModelSpace
     double? Price { get; set; }
 
     /// <summary>
-    /// Parameter that can be used to group a set of orders
+    /// Price the makes order active, e.g. stop price for stop limit orders
+    /// </summary>
+    double? ActivationPrice { get; set; }
+
+    /// <summary>
+    /// Parameter that can be used to group a set of transactions
     /// </summary>
     string Group { get; set; }
 
@@ -30,14 +35,14 @@ namespace Core.ModelSpace
     DateTime? Time { get; set; }
 
     /// <summary>
-    /// Trading operation, e.g. Long or Short
+    /// Transaction type, e.g. withdrawal or order placement
     /// </summary>
-    TransactionTypeEnum? Type { get; set; }
+    OperationEnum? Operation { get; set; }
 
     /// <summary>
     /// Status of the order, e.g. Pending
     /// </summary>
-    TransactionStatusEnum? Status { get; set; }
+    OrderStatusEnum? Status { get; set; }
 
     /// <summary>
     /// Instrument to buy or sell
@@ -61,6 +66,11 @@ namespace Core.ModelSpace
     public virtual double? Price { get; set; }
 
     /// <summary>
+    /// Price the makes order active, e.g. stop price for stop limit orders
+    /// </summary>
+    public virtual double? ActivationPrice { get; set; }
+
+    /// <summary>
     /// Parameter that can be used to group a set of orders
     /// </summary>
     public virtual string Group { get; set; }
@@ -71,14 +81,14 @@ namespace Core.ModelSpace
     public virtual DateTime? Time { get; set; }
 
     /// <summary>
-    /// Trading operation, e.g. Long or Short
+    /// Transaction type, e.g. withdrawal or order placement
     /// </summary>
-    public virtual TransactionTypeEnum? Type { get; set; }
+    public virtual OperationEnum? Operation { get; set; }
 
     /// <summary>
     /// Status of the order, e.g. Pending
     /// </summary>
-    public virtual TransactionStatusEnum? Status { get; set; }
+    public virtual OrderStatusEnum? Status { get; set; }
 
     /// <summary>
     /// Instrument to buy or sell

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Windows;
 using System.Windows.Controls;
 
 // @TODO: Refactor copy-paste
@@ -75,10 +74,11 @@ namespace Client.ControlSpace
         var item = new
         {
           Time = position.Time,
-          Side = position.Type,
+          Type = position.Type,
+          Side = position.Side,
           Instrument = position.Instrument.Name,
           Size = string.Format("{0:0.00###}", position.Size),
-          OpenPrice = string.Format("{0:0.00###}", position.Price),
+          OpenPrice = string.Format("{0:0.00###}", position.OpenPrice),
           ClosePrice = string.Format("{0:0.00###}", position.ClosePrice),
           PnL = string.Format("{0:0.00###}", position.GainLoss)
         };

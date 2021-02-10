@@ -61,7 +61,7 @@ namespace Core.IndicatorSpace
       _min = _min == null ? pointValue : Math.Min(_min.Value, pointValue);
       _max = _max == null ? pointValue : Math.Max(_max.Value, pointValue);
 
-      var nextValue = ConversionManager.Equals(_min, _max) ? 0.0 : Min + (pointValue - _min.Value) * (Max - Min) / (_max.Value - _min.Value);
+      var nextValue = ConversionManager.Compare(_min, _max) ? 0.0 : Min + (pointValue - _min.Value) * (Max - Min) / (_max.Value - _min.Value);
 
       var nextIndicatorPoint = new PointModel
       {

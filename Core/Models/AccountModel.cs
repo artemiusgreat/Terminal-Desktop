@@ -27,7 +27,7 @@ namespace Core.ModelSpace
     /// <summary>
     /// Currency
     /// </summary>
-    CurrencyEnum Currency { get; set; }
+    string Currency { get; set; }
 
     /// <summary>
     /// Reference to the gateway
@@ -83,7 +83,7 @@ namespace Core.ModelSpace
     /// <summary>
     /// Currency
     /// </summary>
-    public virtual CurrencyEnum Currency { get; set; }
+    public virtual string Currency { get; set; }
 
     /// <summary>
     /// Reference to the gateway
@@ -123,7 +123,7 @@ namespace Core.ModelSpace
       Balance = 0.0;
       Leverage = 1.0;
       InitialBalance = 0.0;
-      Currency = CurrencyEnum.USD;
+      Currency = nameof(CurrencyEnum.USD);
 
       Orders = new IndexCollection<ITransactionOrderModel>();
       ActiveOrders = new IndexCollection<ITransactionOrderModel>();

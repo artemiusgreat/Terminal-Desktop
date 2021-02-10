@@ -24,6 +24,7 @@
     <PackageReference Include="Serilog.AspNetCore" Version="3.4.1-dev-00188" />
     <PackageReference Include="System.Interactive" Version="4.1.1" />
     <PackageReference Include="System.Reactive" Version="5.0.0-preview.220" />
+    <PackageReference Include="Websocket.Client" Version="4.3.21" />
   </ItemGroup>
 
 </Project>

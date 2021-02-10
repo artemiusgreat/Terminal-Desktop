@@ -3,7 +3,7 @@ using Core.EnumSpace;
 using Core.IndicatorSpace;
 using Core.MessageSpace;
 using Core.ModelSpace;
-using Gateway.Simulation;
+using Gateway.Alpaca;
 using System;
 using System.Configuration;
 using System.Linq;
@@ -69,8 +69,10 @@ namespace Client.StrategySpace
       {
         Name = _account,
         Account = account,
-        Evaluate = Parse,
-        Source = ConfigurationManager.AppSettings["DataLocation"].ToString()
+        //Evaluate = Parse,
+        //Source = ConfigurationManager.AppSettings["Source"].ToString(),
+        Token = ConfigurationManager.AppSettings["Token"].ToString(),
+        Secret = ConfigurationManager.AppSettings["Secret"].ToString()
       };
 
       _imbalanceIndicator = new ImbalanceIndicator { Name = "Imbalance" };
@@ -108,20 +110,22 @@ namespace Client.StrategySpace
         var isLong = currentVolume > 0 && previousVolume > 0 && previousPoint.Bar.Close > previousPoint.Bar.Open;
         var isShort = currentVolume < 0 && previousVolume < 0 && previousPoint.Bar.Close < previousPoint.Bar.Open;
 
+        //CreateOrder(point, OrderSideEnum.Buy, 1);
+
         if (account.ActiveOrders.Count == 0 && account.ActivePositions.Count == 0)
         {
-          if (isLong) CreateOrder(point, TransactionTypeEnum.Buy, 1);
-          if (isShort) CreateOrder(point, TransactionTypeEnum.Sell, 1);
+          if (isLong) CreateOrder(point, OrderSideEnum.Buy, 1);
+          if (isShort) CreateOrder(point, OrderSideEnum.Sell, 1);
         }
 
         if (account.ActivePositions.Count > 0)
         {
           var activePosition = account.ActivePositions.Last();
 
-          switch (activePosition.Type)
+          switch (activePosition.Side)
           {
-            case TransactionTypeEnum.Buy: if (isShort) CreateOrder(point, TransactionTypeEnum.Sell, activePosition.Size.Value + 1); break;
-            case TransactionTypeEnum.Sell: if (isLong) CreateOrder(point, TransactionTypeEnum.Buy, activePosition.Size.Value + 1); break;
+            case OrderSideEnum.Buy: if (isShort) CreateOrder(point, OrderSideEnum.Sell, activePosition.Size.Value + 1); break;
+            case OrderSideEnum.Sell: if (isLong) CreateOrder(point, OrderSideEnum.Buy, activePosition.Size.Value + 1); break;
           }
         }
       }
@@ -153,63 +157,68 @@ namespace Client.StrategySpace
     /// <param name="side"></param>
     /// <param name="size"></param>
     /// <returns></returns>
-    protected ITransactionOrderModel CreateOrder(IPointModel point, TransactionTypeEnum side, double size)
+    protected ITransactionOrderModel CreateOrder(IPointModel point, OrderSideEnum side, double size)
     {
       var gateway = point.Account.Gateway;
       var instrument = point.Account.Instruments[_asset];
       var order = new TransactionOrderModel
       {
         Size = size,
-        Type = side,
-        Instrument = instrument
+        Side = side,
+        Instrument = instrument,
+        Type = OrderTypeEnum.Market
       };
 
-      //switch (side)
-      //{
-      //  case TransactionTypeEnum.Buy:
+      switch (side)
+      {
+        case OrderSideEnum.Buy:
 
-      //    order.Orders.Add(new TransactionOrderModel
-      //    {
-      //      Size = size,
-      //      Type = TransactionTypeEnum.SellLimit,
-      //      Price = point.Ask + 2,
-      //      Instrument = instrument,
-      //      Container = order
-      //    });
+          order.Orders.Add(new TransactionOrderModel
+          {
+            Size = size,
+            Side = OrderSideEnum.Sell,
+            Type = OrderTypeEnum.Limit,
+            Price = point.Ask + 2,
+            Instrument = instrument,
+            Container = order
+          });
 
-      //    order.Orders.Add(new TransactionOrderModel
-      //    {
-      //      Size = size,
-      //      Type = TransactionTypeEnum.SellStop,
-      //      Price = point.Bid - 2,
-      //      Instrument = instrument,
-      //      Container = order
-      //    });
+          order.Orders.Add(new TransactionOrderModel
+          {
+            Size = size,
+            Side = OrderSideEnum.Sell,
+            Type = OrderTypeEnum.Stop,
+            Price = point.Bid - 2,
+            Instrument = instrument,
+            Container = order
+          });
 
-      //    break;
+          break;
 
-      //  case TransactionTypeEnum.Sell:
+        case OrderSideEnum.Sell:
 
-      //    order.Orders.Add(new TransactionOrderModel
-      //    {
-      //      Size = size,
-      //      Type = TransactionTypeEnum.SellStop,
-      //      Price = point.Bid + 2,
-      //      Instrument = instrument,
-      //      Container = order
-      //    });
+          order.Orders.Add(new TransactionOrderModel
+          {
+            Size = size,
+            Side = OrderSideEnum.Buy,
+            Type = OrderTypeEnum.Stop,
+            Price = point.Bid + 2,
+            Instrument = instrument,
+            Container = order
+          });
 
-      //    order.Orders.Add(new TransactionOrderModel
-      //    {
-      //      Size = size,
-      //      Type = TransactionTypeEnum.BuyLimit,
-      //      Price = point.Ask - 2,
-      //      Instrument = instrument,
-      //      Container = order
-      //    });
+          order.Orders.Add(new TransactionOrderModel
+          {
+            Size = size,
+            Side = OrderSideEnum.Buy,
+            Type = OrderTypeEnum.Limit,
+            Price = point.Ask - 2,
+            Instrument = instrument,
+            Container = order
+          });
 
-      //    break;
-      //}
+          break;
+      }
 
       gateway.OrderSenderStream.OnNext(new TransactionMessage<ITransactionOrderModel>
       {

@@ -95,8 +95,8 @@ namespace Client.StrategySpace
           var rsiCurrent = rsiValues.ElementAt(rsiValues.Count - 1).Bar.Close;
           var rsiPrevious = rsiValues.ElementAt(rsiValues.Count - 2).Bar.Close;
 
-          if (rsiPrevious < 30 && rsiCurrent > 30) CreateOrder(point, TransactionTypeEnum.Buy, 100);
-          if (rsiPrevious > 70 && rsiCurrent < 70) CreateOrder(point, TransactionTypeEnum.Sell, 100);
+          if (rsiPrevious < 30 && rsiCurrent > 30) CreateOrder(point, OrderSideEnum.Buy, 100);
+          if (rsiPrevious > 70 && rsiCurrent < 70) CreateOrder(point, OrderSideEnum.Sell, 100);
         }
 
         if (noPositions == false)
@@ -105,8 +105,8 @@ namespace Client.StrategySpace
           var rsiCurrent = rsiValues.ElementAt(rsiValues.Count - 1).Bar.Close;
           var rsiPrevious = rsiValues.ElementAt(rsiValues.Count - 2).Bar.Close;
 
-          if (Equals(activePosition.Type, TransactionTypeEnum.Buy) && rsiPrevious > 70 && rsiCurrent < 70) CreateOrder(point, TransactionTypeEnum.Sell, 200);
-          if (Equals(activePosition.Type, TransactionTypeEnum.Sell) && rsiPrevious < 30 && rsiCurrent > 30) CreateOrder(point, TransactionTypeEnum.Buy, 200);
+          if (Equals(activePosition.Type, OrderSideEnum.Buy) && rsiPrevious > 70 && rsiCurrent < 70) CreateOrder(point, OrderSideEnum.Sell, 200);
+          if (Equals(activePosition.Type, OrderSideEnum.Sell) && rsiPrevious < 30 && rsiCurrent > 30) CreateOrder(point, OrderSideEnum.Buy, 200);
         }
       }
     }
@@ -118,15 +118,16 @@ namespace Client.StrategySpace
     /// <param name="side"></param>
     /// <param name="size"></param>
     /// <returns></returns>
-    protected ITransactionOrderModel CreateOrder(IPointModel point, TransactionTypeEnum side, double size)
+    protected ITransactionOrderModel CreateOrder(IPointModel point, OrderSideEnum side, double size)
     {
       var gateway = point.Account.Gateway;
       var instrument = point.Account.Instruments[_asset];
       var order = new TransactionOrderModel
       {
         Size = size,
-        Type = side,
-        Instrument = instrument
+        Side = side,
+        Instrument = instrument,
+        Type = OrderTypeEnum.Market
       };
 
       gateway.OrderSenderStream.OnNext(new TransactionMessage<ITransactionOrderModel>

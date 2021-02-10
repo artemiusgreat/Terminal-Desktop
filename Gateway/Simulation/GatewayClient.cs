@@ -211,22 +211,20 @@ namespace Gateway.Simulation
       {
         switch (nextOrder.Type)
         {
-          case TransactionTypeEnum.Buy:
-          case TransactionTypeEnum.Sell:
+          case OrderTypeEnum.Market:
 
             CreatePosition(nextOrder);
             break;
 
-          case TransactionTypeEnum.BuyStop:
-          case TransactionTypeEnum.BuyLimit:
-          case TransactionTypeEnum.SellStop:
-          case TransactionTypeEnum.SellLimit:
+          case OrderTypeEnum.Stop:
+          case OrderTypeEnum.Limit:
+          case OrderTypeEnum.StopLimit:
 
             // Track only independent orders without parent
 
             if (nextOrder.Container == null)
             {
-              nextOrder.Status = TransactionStatusEnum.Placed;
+              nextOrder.Status = OrderStatusEnum.Placed;
               Account.Orders.Add(nextOrder);
               Account.ActiveOrders.Add(nextOrder);
             }
@@ -269,7 +267,7 @@ namespace Gateway.Simulation
     {
       foreach (var nextOrder in orders)
       {
-        nextOrder.Status = TransactionStatusEnum.Cancelled;
+        nextOrder.Status = OrderStatusEnum.Cancelled;
 
         Account.ActiveOrders.Remove(nextOrder);
 
@@ -308,7 +306,7 @@ namespace Gateway.Simulation
       foreach (var order in nextOrder.Orders)
       {
         order.Time = pointModel?.Time;
-        order.Status = TransactionStatusEnum.Placed;
+        order.Status = OrderStatusEnum.Placed;
         Account.ActiveOrders.Add(order);
       }
 
@@ -333,8 +331,7 @@ namespace Gateway.Simulation
 
       nextOrder.Time = pointModel.Time;
       nextOrder.Price = openPrices.Last().Price;
-      nextOrder.Type = GetPositionSide(nextOrder);
-      nextOrder.Status = TransactionStatusEnum.Filled;
+      nextOrder.Status = OrderStatusEnum.Filled;
 
       var nextPosition = UpdatePositionParams(new TransactionPositionModel(), nextOrder);
 
@@ -362,9 +359,8 @@ namespace Gateway.Simulation
         return null;
       }
 
-      var nextSide = GetPositionSide(nextOrder);
-      var isSameBuy = Equals(previousPosition.Type, TransactionTypeEnum.Buy) && Equals(nextSide, TransactionTypeEnum.Buy);
-      var isSameSell = Equals(previousPosition.Type, TransactionTypeEnum.Sell) && Equals(nextSide, TransactionTypeEnum.Sell);
+      var isSameBuy = Equals(previousPosition.Side, OrderSideEnum.Buy) && Equals(nextOrder.Side, OrderSideEnum.Buy);
+      var isSameSell = Equals(previousPosition.Side, OrderSideEnum.Sell) && Equals(nextOrder.Side, OrderSideEnum.Sell);
 
       if (isSameBuy == false && isSameSell == false)
       {
@@ -374,16 +370,14 @@ namespace Gateway.Simulation
       var openPrices = GetOpenPrices(nextOrder);
       var pointModel = nextOrder.Instrument.PointGroups.LastOrDefault();
 
-      nextOrder.Type = nextSide;
       nextOrder.Time = pointModel.Time;
       nextOrder.Price = openPrices.Last().Price;
-      nextOrder.Status = TransactionStatusEnum.Filled;
+      nextOrder.Status = OrderStatusEnum.Filled;
 
       var nextPosition = UpdatePositionParams(new TransactionPositionModel(), nextOrder);
 
       nextPosition.Time = pointModel.Time;
       nextPosition.Price = nextOrder.Price;
-      nextPosition.Type = nextSide;
       nextPosition.Size = nextOrder.Size + previousPosition.Size;
       nextPosition.OpenPrices = previousPosition.OpenPrices.Concat(openPrices).ToList();
       nextPosition.OpenPrice = nextPosition.OpenPrices.Sum(o => o.Size * o.Price) / nextPosition.OpenPrices.Sum(o => o.Size);
@@ -416,9 +410,8 @@ namespace Gateway.Simulation
         return null;
       }
 
-      var nextSide = GetPositionSide(nextOrder);
-      var isSameBuy = Equals(previousPosition.Type, TransactionTypeEnum.Buy) && Equals(nextSide, TransactionTypeEnum.Buy);
-      var isSameSell = Equals(previousPosition.Type, TransactionTypeEnum.Sell) && Equals(nextSide, TransactionTypeEnum.Sell);
+      var isSameBuy = Equals(previousPosition.Side, OrderSideEnum.Buy) && Equals(nextOrder.Side, OrderSideEnum.Buy);
+      var isSameSell = Equals(previousPosition.Side, OrderSideEnum.Sell) && Equals(nextOrder.Side, OrderSideEnum.Sell);
 
       if (isSameBuy || isSameSell)
       {
@@ -428,16 +421,14 @@ namespace Gateway.Simulation
       var openPrices = GetOpenPrices(nextOrder);
       var pointModel = nextOrder.Instrument.PointGroups.LastOrDefault();
 
-      nextOrder.Type = nextSide;
       nextOrder.Time = pointModel.Time;
       nextOrder.Price = openPrices.Last().Price;
-      nextOrder.Status = TransactionStatusEnum.Filled;
+      nextOrder.Status = OrderStatusEnum.Filled;
 
       var nextPosition = UpdatePositionParams(new TransactionPositionModel(), nextOrder);
 
       nextPosition.Time = pointModel.Time;
       nextPosition.OpenPrices = openPrices;
-      nextPosition.Type = nextSide;
       nextPosition.Price = nextPosition.OpenPrice = nextOrder.Price;
       nextPosition.Size = Math.Abs(nextPosition.Size.Value - previousPosition.Size.Value);
 
@@ -455,31 +446,12 @@ namespace Gateway.Simulation
       Account.Orders.Add(nextOrder);
       Account.Positions.Add(previousPosition);
 
-      if (ConversionManager.Equals(nextPosition.Size, 0.0) == false)
+      if (ConversionManager.Compare(nextPosition.Size, 0.0) == false)
       {
         Account.ActivePositions.Add(nextPosition);
       }
 
       return nextPosition;
-    }
-
-    /// <summary>
-    /// Define transaction type based on order
-    /// </summary>
-    /// <param name="nextOrder"></param>
-    protected virtual TransactionTypeEnum GetPositionSide(ITransactionOrderModel nextOrder)
-    {
-      switch (nextOrder.Type)
-      {
-        case TransactionTypeEnum.Buy:
-        case TransactionTypeEnum.BuyStop:
-        case TransactionTypeEnum.BuyLimit: return TransactionTypeEnum.Buy;
-        case TransactionTypeEnum.Sell:
-        case TransactionTypeEnum.SellStop:
-        case TransactionTypeEnum.SellLimit: return TransactionTypeEnum.Sell;
-      }
-
-      return TransactionTypeEnum.None;
     }
 
     /// <summary>
@@ -491,9 +463,9 @@ namespace Gateway.Simulation
       var openPrice = nextOrder.Price;
       var pointModel = nextOrder.Instrument.PointGroups.LastOrDefault();
 
-      if (ConversionManager.Equals(openPrice ?? 0.0, 0.0))
+      if (ConversionManager.Compare(openPrice ?? 0.0, 0.0))
       {
-        openPrice = Equals(GetPositionSide(nextOrder), TransactionTypeEnum.Buy) ? pointModel.Ask : pointModel.Bid;
+        openPrice = Equals(nextOrder.Side, OrderSideEnum.Buy) ? pointModel.Ask : pointModel.Bid;
       }
 
       return new List<ITransactionOrderModel>
@@ -514,18 +486,25 @@ namespace Gateway.Simulation
     {
       for (var i = 0; i < Account.ActiveOrders.Count; i++)
       {
-        var executable = false;
         var order = Account.ActiveOrders[i];
         var pointModel = order.Instrument.PointGroups.LastOrDefault();
 
         if (pointModel != null)
         {
-          switch (order.Type)
+          var executable = false;
+          var isBuyStop = Equals(order.Side, OrderSideEnum.Buy) && Equals(order.Type, OrderTypeEnum.Stop);
+          var isSellStop = Equals(order.Side, OrderSideEnum.Sell) && Equals(order.Type, OrderTypeEnum.Stop);
+          var isBuyLimit = Equals(order.Side, OrderSideEnum.Buy) && Equals(order.Type, OrderTypeEnum.Limit);
+          var isSellLimit = Equals(order.Side, OrderSideEnum.Sell) && Equals(order.Type, OrderTypeEnum.Limit);
+
+          if (isBuyStop || isSellLimit)
           {
-            case TransactionTypeEnum.BuyStop:
-            case TransactionTypeEnum.SellLimit: executable = pointModel.Ask >= order.Price; break;
-            case TransactionTypeEnum.SellStop:
-            case TransactionTypeEnum.BuyLimit: executable = pointModel.Bid <= order.Price; break;
+            executable = pointModel.Ask >= order.Price;
+          }
+
+          if (isSellStop || isBuyLimit)
+          {
+            executable = pointModel.Bid <= order.Price;
           }
 
           if (executable)

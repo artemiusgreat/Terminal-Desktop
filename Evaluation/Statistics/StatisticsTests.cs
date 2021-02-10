@@ -15,7 +15,7 @@ namespace Evaluation
       var inputs = new List<double> { 2.0, 5.0, 15.0, 35.0, 20.0, 55.0, 150.0 };
       var logs = inputs
         .Select(o => Math.Log(o))
-        .Where(o => double.IsInfinity(o) == false && ConversionManager.Equals(o, 0) == false)
+        .Where(o => double.IsInfinity(o) == false && ConversionManager.Compare(o, 0) == false)
         .ToList();
 
       var count = logs.Count;

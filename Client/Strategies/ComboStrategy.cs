@@ -93,7 +93,8 @@ namespace Client.StrategySpace
               Next = new TransactionOrderModel
               {
                 Size = 1,
-                Type = TransactionTypeEnum.Sell,
+                Side = OrderSideEnum.Sell,
+                Type = OrderTypeEnum.Market,
                 Instrument = instrumentX
               }
             });
@@ -104,7 +105,8 @@ namespace Client.StrategySpace
               Next = new TransactionOrderModel
               {
                 Size = 1,
-                Type = TransactionTypeEnum.Buy,
+                Side = OrderSideEnum.Buy,
+                Type = OrderTypeEnum.Market,
                 Instrument = instrumentX
               }
             });
@@ -118,7 +120,8 @@ namespace Client.StrategySpace
               Next = new TransactionOrderModel
               {
                 Size = 1,
-                Type = TransactionTypeEnum.Buy,
+                Side = OrderSideEnum.Buy,
+                Type = OrderTypeEnum.Market,
                 Instrument = instrumentX
               }
             });
@@ -129,7 +132,8 @@ namespace Client.StrategySpace
               Next = new TransactionOrderModel
               {
                 Size = 1,
-                Type = TransactionTypeEnum.Sell,
+                Side = OrderSideEnum.Sell,
+                Type = OrderTypeEnum.Market,
                 Instrument = instrumentY
               }
             });

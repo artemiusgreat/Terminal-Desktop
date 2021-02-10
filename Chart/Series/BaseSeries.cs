@@ -103,7 +103,7 @@ namespace Chart.SeriesSpace
     {
       var currentModel = GetModel(position, series, items);
 
-      if (currentModel == null)
+      if (currentModel?.Point == null)
       {
         return null;
       }

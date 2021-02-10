@@ -18,7 +18,7 @@ namespace Chart.SeriesSpace
       var currentModel = GetModel(position, series, items);
       var previousModel = GetModel(position - 1, series, items);
 
-      if (currentModel == null || previousModel == null)
+      if (currentModel?.Point == null || previousModel?.Point == null)
       {
         return;
       }

@@ -16,9 +16,9 @@ namespace Chart.SeriesSpace
     /// <returns></returns>
     public override void CreateItem(int position, string series, IList<IInputModel> items)
     {
-      dynamic currentModel = GetModel(position, series, items);
+      var currentModel = GetModel(position, series, items);
 
-      if (currentModel == null)
+      if (currentModel?.Point == null)
       {
         return;
       }

@@ -75,7 +75,8 @@ namespace Client.ControlSpace
         var item = new
         {
           Time = order.Time,
-          Side = order.Type,
+          Type = order.Type,
+          Side = order.Side,
           Instrument = order.Instrument.Name,
           Size = string.Format("{0:0.00###}", order.Size),
           OpenPrice = string.Format("{0:0.00###}", order.Price)

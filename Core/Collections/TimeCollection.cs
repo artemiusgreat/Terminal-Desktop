@@ -32,8 +32,8 @@ namespace Core.CollectionSpace
 
       if (previous != null)
       {
-        var nextTime = ConversionManager.Round(item.Time, span);
-        var previousTime = ConversionManager.Round(previous.Time, span);
+        var nextTime = ConversionManager.Cut(item.Time, span);
+        var previousTime = ConversionManager.Cut(previous.Time, span);
 
         if (Equals(previousTime, nextTime))
         {

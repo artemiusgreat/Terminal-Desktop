@@ -16,9 +16,14 @@ namespace Gateway.Alpaca
   public class GatewayClient : GatewayModel, IGatewayModel
   {
     /// <summary>
+    /// Last quote
+    /// </summary>
+    protected IPointModel _point = null;
+
+    /// <summary>
     /// HTTP client
     /// </summary>
-    protected IRemoteService _serviceClient = null;
+    protected IClientService _serviceClient = null;
 
     /// <summary>
     /// Data client
@@ -76,9 +81,9 @@ namespace Gateway.Alpaca
           {
             switch (message.Action)
             {
-              case ActionEnum.Create: CreateOrder(message.Next); break;
-              case ActionEnum.Update: UpdateOrder(message.Next); break;
-              case ActionEnum.Delete: DeleteOrder(message.Next); break;
+              case ActionEnum.Create: CreateOrders(message.Next); break;
+              case ActionEnum.Update: UpdateOrders(message.Next); break;
+              case ActionEnum.Delete: DeleteOrders(message.Next); break;
             }
           });
 
@@ -103,67 +108,9 @@ namespace Gateway.Alpaca
               break;
           }
 
-          var account = await _executionClient.GetAccountAsync();
-          var orders = await _executionClient.ListOrdersAsync(new ListOrdersRequest());
-          var positions = await _executionClient.ListPositionsAsync();
-
-          // Account
-
-          Account.Leverage = account.Multiplier;
-          Account.Currency = ConversionManager.Enum<CurrencyEnum>(account.Currency);
-          Account.Balance = ConversionManager.Value<double>(account.Equity);
-          Account.InitialBalance = ConversionManager.Value<double>(account.LastEquity);
-
-          // Orders
-
-          foreach (var o in orders)
-          {
-            var order = new TransactionOrderModel();
-
-            order.Size = o.Quantity;
-            order.Time = o.CreatedAtUtc;
-            order.Id = o.OrderId.ToString();
-            order.Price = GetOrderPrice(o);
-            order.Status = GetOrderStatus(o.OrderStatus);
-            order.TimeSpan = GetOrderTimeSpan(o.TimeInForce);
-            order.Type = GetOrderType(o.OrderType, o.OrderSide);
-            order.Instrument = new InstrumentModel
-            {
-              Name = o.Symbol
-            };
-
-            Account.ActiveOrders.Add(order);
-          }
-
-          // Positions
-
-          foreach (var o in positions)
-          {
-            var position = new TransactionPositionModel();
-            var direction = GetPositionDirection(o.Side);
-
-            position.Size = o.Quantity;
-            position.Type = GetPositionType(o.Side);
-            position.OpenPrice = ConversionManager.Value<double>(o.AverageEntryPrice);
-            position.GainLoss = ConversionManager.Value<double>(o.UnrealizedProfitLoss);
-            position.GainLossPoints = ConversionManager.Value<double>((o.AssetCurrentPrice - o.AverageEntryPrice)) * direction;
-            position.Instrument = new InstrumentModel
-            {
-              Name = o.Symbol
-            };
-
-            position.OpenPrices = new List<ITransactionOrderModel>
-            {
-              new TransactionOrderModel
-              {
-                Price = position.OpenPrice,
-                Instrument = position.Instrument
-              }
-            };
-
-            Account.ActivePositions.Add(position);
-          }
-
+          await GetAccountData();
+          await GetActiveOrders();
+          await GetActivePositions();
           await Subscribe();
         }
         catch (Exception e)
@@ -243,167 +190,21 @@ namespace Gateway.Alpaca
     }
 
     /// <summary>
-    /// Extract position type
-    /// </summary>
-    /// <param name="positionSide"></param>
-    protected TransactionTypeEnum? GetPositionType(PositionSide positionSide)
-    {
-      switch (positionSide)
-      {
-        case PositionSide.Long: return TransactionTypeEnum.Buy;
-        case PositionSide.Short: return TransactionTypeEnum.Sell;
-      }
-
-      return null;
-    }
-
-    /// <summary>
-    /// Extract position direction
-    /// </summary>
-    /// <param name="positionSide"></param>
-    protected double GetPositionDirection(PositionSide positionSide)
-    {
-      switch (positionSide)
-      {
-        case PositionSide.Long: return 1.0;
-        case PositionSide.Short: return -1.0;
-      }
-
-      return 0.0;
-    }
-
-    /// <summary>
-    /// Extract order price
-    /// </summary>
-    /// <param name="orderType"></param>
-    protected double? GetOrderPrice(IOrder order)
-    {
-      switch (order.OrderType)
-      {
-        case OrderType.Stop:
-        case OrderType.StopLimit:
-
-          return ConversionManager.Value<double>(order.StopPrice);
-
-        case OrderType.Limit:
-
-          return ConversionManager.Value<double>(order.LimitPrice);
-      }
-
-      return null;
-    }
-
-    /// <summary>
-    /// Extract time span 
-    /// </summary>
-    /// <param name="span"></param>
-    protected OrderTimeSpanEnum? GetOrderTimeSpan(TimeInForce span)
-    {
-      switch (span)
-      {
-        case TimeInForce.Day: return OrderTimeSpanEnum.Date;
-        case TimeInForce.Fok: return OrderTimeSpanEnum.FillOrKill;
-        case TimeInForce.Gtc: return OrderTimeSpanEnum.GoodTillCancel;
-        case TimeInForce.Ioc: return OrderTimeSpanEnum.ImmediateOrKill;
-      }
-
-      return null;
-    }
-
-    /// <summary>
-    /// Extract order type
-    /// </summary>
-    /// <param name="orderType"></param>
-    /// <param name="orderSide"></param>
-    protected TransactionTypeEnum? GetOrderType(OrderType orderType, OrderSide orderSide)
-    {
-      switch (orderSide)
-      {
-        case OrderSide.Buy:
-
-          switch (orderType)
-          {
-            case OrderType.Market: return TransactionTypeEnum.Buy;
-            case OrderType.Stop: return TransactionTypeEnum.BuyStop;
-            case OrderType.Limit: return TransactionTypeEnum.BuyLimit;
-            case OrderType.StopLimit: return TransactionTypeEnum.BuyStopLimit;
-          }
-
-          break;
-
-        case OrderSide.Sell:
-
-          switch (orderType)
-          {
-            case OrderType.Market: return TransactionTypeEnum.Sell;
-            case OrderType.Stop: return TransactionTypeEnum.SellStop;
-            case OrderType.Limit: return TransactionTypeEnum.SellLimit;
-            case OrderType.StopLimit: return TransactionTypeEnum.SellStopLimit;
-          }
-
-          break;
-      }
-
-      return null;
-    }
-
-    /// <summary>
-    /// Extract order status
-    /// </summary>
-    /// <param name="status"></param>
-    protected TransactionStatusEnum? GetOrderStatus(OrderStatus status)
-    {
-      switch (status)
-      {
-        case OrderStatus.New:
-        case OrderStatus.Held:
-        case OrderStatus.Accepted:
-        case OrderStatus.Replaced:
-        case OrderStatus.Suspended:
-        case OrderStatus.Calculated:
-        case OrderStatus.PendingNew:
-        case OrderStatus.DoneForDay:
-        case OrderStatus.PendingReplace:
-        case OrderStatus.AcceptedForBidding:
-
-          return TransactionStatusEnum.Placed;
-
-        case OrderStatus.Canceled:
-        case OrderStatus.PendingCancel:
-
-          return TransactionStatusEnum.Cancelled;
-
-        case OrderStatus.Expired:
-
-          return TransactionStatusEnum.Expired;
-
-        case OrderStatus.Fill:
-        case OrderStatus.Filled:
-
-          return TransactionStatusEnum.Filled;
-
-        case OrderStatus.PartialFill:
-        case OrderStatus.PartiallyFilled:
-
-          return TransactionStatusEnum.PartiallyFilled;
-
-        case OrderStatus.Stopped:
-        case OrderStatus.Rejected:
-
-          return TransactionStatusEnum.Declined;
-      }
-
-      return null;
-    }
-
-    /// <summary>
     /// Place new order
     /// </summary>
     /// <param name="orders"></param>
     /// <returns></returns>
-    public virtual Task<IEnumerable<ITransactionOrderModel>> CreateOrder(params ITransactionOrderModel[] orders)
+    public virtual Task<IEnumerable<ITransactionOrderModel>> CreateOrders(params ITransactionOrderModel[] orders)
     {
-      return Task.FromResult(orders as IEnumerable<ITransactionOrderModel>);
+      return Task.Run(async () =>
+      {
+        foreach (var nextOrder in orders)
+        {
+          await CreateOrder(nextOrder);
+        }
+
+        return orders as IEnumerable<ITransactionOrderModel>;
+      });
     }
 
     /// <summary>
@@ -411,7 +212,7 @@ namespace Gateway.Alpaca
     /// </summary>
     /// <param name="orders"></param>
     /// <returns></returns>
-    public virtual Task<IEnumerable<ITransactionOrderModel>> UpdateOrder(params ITransactionOrderModel[] orders)
+    public virtual Task<IEnumerable<ITransactionOrderModel>> UpdateOrders(params ITransactionOrderModel[] orders)
     {
       return Task.FromResult(orders as IEnumerable<ITransactionOrderModel>);
     }
@@ -421,9 +222,176 @@ namespace Gateway.Alpaca
     /// </summary>
     /// <param name="orders"></param>
     /// <returns></returns>
-    public virtual Task<IEnumerable<ITransactionOrderModel>> DeleteOrder(params ITransactionOrderModel[] orders)
+    public virtual Task<IEnumerable<ITransactionOrderModel>> DeleteOrders(params ITransactionOrderModel[] orders)
     {
       return Task.FromResult(orders as IEnumerable<ITransactionOrderModel>);
+    }
+
+    /// <summary>
+    /// Convert abstract order to a real one
+    /// </summary>
+    /// <param name="internalOrder"></param>
+    /// <param name="orderClass"></param>
+    /// <returns></returns>
+    protected async Task<ITransactionOrderModel> CreateOrder(ITransactionOrderModel internalOrder, OrderClass? orderClass = null)
+    {
+      var size = ConversionManager.To<long>(internalOrder.Size);
+      var price = ConversionManager.To<decimal>(internalOrder.Price);
+      var span = MapInput.GetTimeSpan(internalOrder.TimeSpan.Value).Value;
+      var orderSide = MapInput.GetOrderSide(internalOrder.Side.Value).Value;
+      var orderType = MapInput.GetOrderType(internalOrder.Type.Value).Value;
+      var activationPrice = ConversionManager.To<decimal>(internalOrder.ActivationPrice);
+      var orderQuery = new NewOrderRequest(internalOrder.Instrument.Name, size, orderSide, orderType, span)
+      {
+        ClientOrderId = internalOrder.Id
+      };
+
+      if (orderClass != null)
+      {
+        orderQuery.OrderClass = orderClass;
+      }
+
+      switch (orderType)
+      {
+        case OrderType.Stop: orderQuery.StopPrice = price; break;
+        case OrderType.Limit: orderQuery.LimitPrice = price; break;
+        case OrderType.StopLimit: orderQuery.StopPrice = activationPrice; orderQuery.LimitPrice = price; break;
+      }
+
+      await _executionClient.PostOrderAsync(orderQuery);
+
+      foreach (var childData in internalOrder.Orders)
+      {
+        await CreateOrder(childData);
+      }
+
+      return internalOrder;
+    }
+
+    /// <summary>
+    /// Load account data
+    /// </summary>
+    /// <returns></returns>
+    protected async Task GetAccountData()
+    {
+      var account = await _executionClient.GetAccountAsync();
+
+      Account.Leverage = account.Multiplier;
+      Account.Currency = account.Currency.ToUpper();
+      Account.Balance = ConversionManager.To<double>(account.Equity);
+      Account.InitialBalance = ConversionManager.To<double>(account.LastEquity);
+    }
+
+    /// <summary>
+    /// Load orders
+    /// </summary>
+    /// <returns></returns>
+    protected async Task GetOrders()
+    {
+      var orders = await _executionClient.ListOrdersAsync(new ListOrdersRequest
+      {
+        LimitOrderNumber = 500,
+        OrderListSorting = SortDirection.Descending,
+        OrderStatusFilter = OrderStatusFilter.Closed
+      });
+
+      foreach (var o in orders)
+      {
+        var order = new TransactionOrderModel();
+
+        Account.Instruments.TryGetValue(o.Symbol, out IInstrumentModel instrument);
+
+        order.Size = o.Quantity;
+        order.Time = o.CreatedAtUtc;
+        order.Id = o.OrderId.ToString();
+        order.Type = MapOutput.GetOrderType(o.OrderType);
+        order.Side = MapOutput.GetOrderSide(o.OrderSide);
+        order.Status = MapOutput.GetOrderStatus(o.OrderStatus);
+        order.TimeSpan = MapOutput.GetTimeSpan(o.TimeInForce);
+        order.Price = ConversionManager.To<double>(o.AverageFillPrice ?? o.StopPrice ?? o.LimitPrice);
+        order.Instrument = instrument ?? new InstrumentModel
+        {
+          Name = o.Symbol
+        };
+
+        Account.Orders.Add(order);
+      }
+    }
+
+    /// <summary>
+    /// Load active orders
+    /// </summary>
+    /// <returns></returns>
+    protected async Task GetActiveOrders()
+    {
+      var orders = await _executionClient.ListOrdersAsync(new ListOrdersRequest
+      {
+        LimitOrderNumber = 500,
+        OrderListSorting = SortDirection.Descending,
+        OrderStatusFilter = OrderStatusFilter.Open
+      });
+
+      foreach (var o in orders)
+      {
+        var order = new TransactionOrderModel();
+
+        Account.Instruments.TryGetValue(o.Symbol, out IInstrumentModel instrument);
+
+        order.Size = o.Quantity;
+        order.Time = o.CreatedAtUtc;
+        order.Id = o.OrderId.ToString();
+        order.Type = MapOutput.GetOrderType(o.OrderType);
+        order.Side = MapOutput.GetOrderSide(o.OrderSide);
+        order.Status = MapOutput.GetOrderStatus(o.OrderStatus);
+        order.TimeSpan = MapOutput.GetTimeSpan(o.TimeInForce);
+        order.Price = ConversionManager.To<double>(o.AverageFillPrice ?? o.StopPrice ?? o.LimitPrice);
+        order.Instrument = instrument ?? new InstrumentModel
+        {
+          Name = o.Symbol
+        };
+
+        Account.ActiveOrders.Add(order);
+      }
+    }
+
+    /// <summary>
+    /// Load active positions
+    /// </summary>
+    /// <returns></returns>
+    protected async Task GetActivePositions()
+    {
+      var positions = await _executionClient.ListPositionsAsync();
+
+      foreach (var o in positions)
+      {
+        var position = new TransactionPositionModel();
+
+        Account.Instruments.TryGetValue(o.Symbol, out IInstrumentModel instrument);
+
+        position.Size = o.Quantity;
+        position.Time = DateTime.MinValue;
+        position.Type = OrderTypeEnum.Market;
+        position.Side = MapOutput.GetPositionSide(o.Side);
+        position.OpenPrice = ConversionManager.To<double>(o.AverageEntryPrice);
+        position.ClosePrice = ConversionManager.To<double>(o.AssetCurrentPrice);
+        position.GainLoss = ConversionManager.To<double>(o.UnrealizedProfitLoss);
+        position.GainLossPoints = ConversionManager.To<double>((o.AssetCurrentPrice - o.AverageEntryPrice)) * MapOutput.GetDirection(position.Side.Value);
+        position.Instrument = instrument ?? new InstrumentModel
+        {
+          Name = o.Symbol
+        };
+
+        position.OpenPrices = new List<ITransactionOrderModel>
+        {
+          new TransactionOrderModel
+          {
+            Price = position.OpenPrice,
+            Instrument = position.Instrument
+          }
+        };
+
+        Account.ActivePositions.Add(position);
+      }
     }
 
     /// <summary>
@@ -432,16 +400,24 @@ namespace Gateway.Alpaca
     /// <param name="input"></param>
     protected void OnInputQuote(IStreamQuote input)
     {
+      var currentAsk = ConversionManager.To<double>(input.AskPrice);
+      var currentBid = ConversionManager.To<double>(input.BidPrice);
+      var previousAsk = _point?.Ask ?? currentAsk;
+      var previousBid = _point?.Bid ?? currentBid;
+
       var point = new PointModel
       {
+        Ask = currentAsk,
+        Bid = currentBid,
         Time = input.TimeUtc,
         AskSize = input.AskSize,
         BidSize = input.BidSize,
         Bar = new PointBarModel(),
         Instrument = Account.Instruments[input.Symbol],
-        Ask = ConversionManager.Value<double>(input.AskPrice),
-        Bid = ConversionManager.Value<double>(input.BidPrice)
+        Last = ConversionManager.Compare(currentBid, previousBid) ? currentAsk : currentBid
       };
+
+      _point = point;
 
       UpdatePointProps(point, Account.Instruments[input.Symbol]);
     }
@@ -453,5 +429,6 @@ namespace Gateway.Alpaca
     protected void OnInputTrade(IStreamTrade input)
     {
     }
+
   }
 }

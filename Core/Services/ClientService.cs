@@ -1,5 +1,4 @@
 using Core.ManagerSpace;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -12,7 +11,7 @@ namespace Core.ModelSpace
   /// <summary>
   /// Definition
   /// </summary>
-  public interface IRemoteService : IDisposable
+  public interface IClientService : IDisposable
   {
     /// <summary>
     /// Single instance
@@ -24,12 +23,12 @@ namespace Core.ModelSpace
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="source"></param>
-    /// <param name="queryItems"></param>
+    /// <param name="queryParams"></param>
     /// <param name="cts"></param>
     /// <returns></returns>
     Task<T> Get<T>(
       string source,
-      IDictionary<dynamic, dynamic> queryItems = null,
+      IDictionary<dynamic, dynamic> queryParams = null,
       CancellationTokenSource cts = null) where T : new();
 
     /// <summary>
@@ -37,13 +36,13 @@ namespace Core.ModelSpace
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="source"></param>
-    /// <param name="queryItems"></param>
+    /// <param name="queryParams"></param>
     /// <param name="content"></param>
     /// <param name="cts"></param>
     /// <returns></returns>
     Task<T> Post<T>(
       string source,
-      IDictionary<dynamic, dynamic> queryItems = null,
+      IDictionary<dynamic, dynamic> queryParams = null,
       HttpContent content = null,
       CancellationTokenSource cts = null) where T : new();
   }
@@ -51,7 +50,7 @@ namespace Core.ModelSpace
   /// <summary>
   /// Service to track account changes, including equity and quotes
   /// </summary>
-  public class RemoteService : IRemoteService
+  public class ClientService : IClientService
   {
     /// <summary>
     /// HTTP client instance
@@ -68,15 +67,15 @@ namespace Core.ModelSpace
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="source"></param>
-    /// <param name="queryItems"></param>
+    /// <param name="queryParams"></param>
     /// <param name="cts"></param>
     /// <returns></returns>
     public async Task<T> Get<T>(
       string source,
-      IDictionary<dynamic, dynamic> queryItems = null,
+      IDictionary<dynamic, dynamic> queryParams = null,
       CancellationTokenSource cts = null) where T : new()
     {
-      var response = await Send(source, queryItems, HttpMethod.Get, null, cts);
+      var response = await Send(source, queryParams, HttpMethod.Get, null, cts);
 
       if (response == null)
       {
@@ -91,17 +90,17 @@ namespace Core.ModelSpace
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="source"></param>
-    /// <param name="queryItems"></param>
+    /// <param name="queryParams"></param>
     /// <param name="content"></param>
     /// <param name="cts"></param>
     /// <returns></returns>
     public async Task<T> Post<T>(
       string source,
-      IDictionary<dynamic, dynamic> queryItems = null,
+      IDictionary<dynamic, dynamic> queryParams = null,
       HttpContent content = null,
       CancellationTokenSource cts = null) where T : new()
     {
-      var response = await Send(source, queryItems, HttpMethod.Post, content, cts);
+      var response = await Send(source, queryParams, HttpMethod.Post, content, cts);
 
       if (response == null)
       {
@@ -123,48 +122,47 @@ namespace Core.ModelSpace
     /// Generic query sender
     /// </summary>
     /// <param name="source"></param>
-    /// <param name="queryItems"></param>
+    /// <param name="queryParams"></param>
     /// <param name="queryType"></param>
-    /// <param name="queryHeaders"></param>
     /// <param name="content"></param>
     /// <param name="cts"></param>
     /// <returns></returns>
     protected async Task<string> Send(
       string source,
-      IDictionary<dynamic, dynamic> queryItems = null,
+      IDictionary<dynamic, dynamic> queryParams = null,
       HttpMethod queryType = null,
       HttpContent content = null,
       CancellationTokenSource cts = null)
     {
-      var cancellation = cts == null ? default : cts.Token;
-      var queryParams = HttpUtility.ParseQueryString(string.Empty);
       var query = string.Empty;
+      var cancellation = cts == null ? default : cts.Token;
+      var inputs = HttpUtility.ParseQueryString(string.Empty);
 
-      if (queryItems != null)
+      if (queryParams != null)
       {
-        foreach (var item in queryItems)
+        foreach (var item in queryParams)
         {
-          queryParams.Add(item.Key, item.Value);
+          inputs.Add($"{ item.Key }", $"{ item.Value }");
         }
 
-        query = queryParams.ToString();
+        query = inputs.ToString();
       }
 
       var message = new HttpRequestMessage
       {
-        Method = queryType ?? HttpMethod.Get,
-        RequestUri = new Uri(source + query),
-        Content = content
+        Content = content,
+        Method = queryType,
+        RequestUri = new Uri(source + "?" + query)
       };
 
       var response = await _client.SendAsync(message, cancellation);
-      
-      if (response.IsSuccessStatusCode)
+
+      if (response.Content == null)
       {
-        return await response.Content.ReadAsStringAsync();
+        return null;
       }
 
-      return null;
+      return await response.Content.ReadAsStringAsync();
     }
   }
 }

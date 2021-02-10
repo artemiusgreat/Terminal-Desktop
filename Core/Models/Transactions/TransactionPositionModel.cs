@@ -158,10 +158,10 @@ namespace Core.ModelSpace
 
         if (point != null)
         {
-          switch (Type)
+          switch (Side)
           {
-            case TransactionTypeEnum.Buy: return point.Bid;
-            case TransactionTypeEnum.Sell: return point.Ask;
+            case OrderSideEnum.Buy: return point.Bid;
+            case OrderSideEnum.Sell: return point.Ask;
           }
         }
 
@@ -198,10 +198,10 @@ namespace Core.ModelSpace
     {
       var direction = 0;
 
-      switch (Type)
+      switch (Side)
       {
-        case TransactionTypeEnum.Buy: direction = 1; break;
-        case TransactionTypeEnum.Sell: direction = -1; break;
+        case OrderSideEnum.Buy: direction = 1; break;
+        case OrderSideEnum.Sell: direction = -1; break;
       }
 
       var estimate = (ClosePriceEstimate - OpenPrice) * direction;

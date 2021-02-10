@@ -152,6 +152,7 @@ namespace Core.ModelSpace
       position.Description = order.Description;
       position.Type = order.Type;
       position.Size = order.Size;
+      position.Side = order.Side;
       position.Group = order.Group;
       position.Price = order.Price;
       position.OpenPrice = order.Price;

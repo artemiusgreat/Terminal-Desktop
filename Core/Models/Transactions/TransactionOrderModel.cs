@@ -14,6 +14,16 @@ namespace Core.ModelSpace
   public interface ITransactionOrderModel : ITransactionModel
   {
     /// <summary>
+    /// Type
+    /// </summary>
+    OrderTypeEnum? Type { get; set; }
+
+    /// <summary>
+    /// Side
+    /// </summary>
+    OrderSideEnum? Side { get; set; }
+
+    /// <summary>
     /// Time in force
     /// </summary>
     OrderTimeSpanEnum? TimeSpan { get; set; }
@@ -39,6 +49,16 @@ namespace Core.ModelSpace
   /// </summary>
   public class TransactionOrderModel : TransactionModel, ITransactionOrderModel
   {
+    /// <summary>
+    /// Type
+    /// </summary>
+    public virtual OrderTypeEnum? Type { get; set; }
+
+    /// <summary>
+    /// Side
+    /// </summary>
+    public virtual OrderSideEnum? Side { get; set; }
+
     /// <summary>
     /// Time in force
     /// </summary>
@@ -79,7 +99,7 @@ namespace Core.ModelSpace
     {
       RuleFor(o => o.Instrument).NotNull().NotEmpty().WithMessage("No instrument");
       RuleFor(o => o.Size).NotNull().NotEqual(0).WithMessage("No size");
-      RuleFor(o => o.Type).NotNull().NotEqual(TransactionTypeEnum.None).WithMessage("No side");
+      RuleFor(o => o.Type).NotNull().NotEqual(OrderTypeEnum.None).WithMessage("No side");
       RuleFor(o => o.Orders).NotNull().WithMessage("No orders");
     }
   }
@@ -89,10 +109,9 @@ namespace Core.ModelSpace
   /// </summary>
   public class TransactionOrderPriceValidation : AbstractValidator<ITransactionOrderModel>
   {
-    private static readonly List<TransactionTypeEnum?> _immediateTypes = new List<TransactionTypeEnum?>
+    private static readonly List<OrderTypeEnum?> _immediateTypes = new List<OrderTypeEnum?>
     {
-      TransactionTypeEnum.Buy,
-      TransactionTypeEnum.Sell
+      OrderTypeEnum.Market
     };
 
     public TransactionOrderPriceValidation()
@@ -100,10 +119,10 @@ namespace Core.ModelSpace
       Include(new TransactionOrderValidation());
 
       When(o => _immediateTypes.Contains(o.Type) == false, () => RuleFor(o => o.Price).NotNull().NotEqual(0).WithMessage("No open price"));
-      When(o => Equals(o.Type, TransactionTypeEnum.BuyStop), () => RuleFor(o => o.Price).GreaterThanOrEqualTo(o => o.Instrument.PointGroups.Last().Ask).WithMessage("Buy stop is below the offer"));
-      When(o => Equals(o.Type, TransactionTypeEnum.SellStop), () => RuleFor(o => o.Price).LessThanOrEqualTo(o => o.Instrument.PointGroups.Last().Bid).WithMessage("Sell stop is above the bid"));
-      When(o => Equals(o.Type, TransactionTypeEnum.BuyLimit), () => RuleFor(o => o.Price).LessThanOrEqualTo(o => o.Instrument.PointGroups.Last().Ask).WithMessage("Buy limit is above the offer"));
-      When(o => Equals(o.Type, TransactionTypeEnum.SellLimit), () => RuleFor(o => o.Price).GreaterThanOrEqualTo(o => o.Instrument.PointGroups.Last().Bid).WithMessage("Sell limit is below the bid"));
+      When(o => Equals(o.Type, OrderSideEnum.Buy) && Equals(o.Type, OrderTypeEnum.Stop), () => RuleFor(o => o.Price).GreaterThanOrEqualTo(o => o.Instrument.PointGroups.Last().Ask).WithMessage("Buy stop is below the offer"));
+      When(o => Equals(o.Type, OrderSideEnum.Sell) && Equals(o.Type, OrderTypeEnum.Stop), () => RuleFor(o => o.Price).LessThanOrEqualTo(o => o.Instrument.PointGroups.Last().Bid).WithMessage("Sell stop is above the bid"));
+      When(o => Equals(o.Type, OrderSideEnum.Buy) && Equals(o.Type, OrderTypeEnum.Limit), () => RuleFor(o => o.Price).LessThanOrEqualTo(o => o.Instrument.PointGroups.Last().Ask).WithMessage("Buy limit is above the offer"));
+      When(o => Equals(o.Type, OrderSideEnum.Sell) && Equals(o.Type, OrderTypeEnum.Limit), () => RuleFor(o => o.Price).GreaterThanOrEqualTo(o => o.Instrument.PointGroups.Last().Bid).WithMessage("Sell limit is below the bid"));
     }
   }
 }

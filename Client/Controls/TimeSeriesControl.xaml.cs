@@ -245,27 +245,28 @@ namespace Client.ControlSpace
               .Next
               .Instrument;
 
-            if (areaGroups.TryGetValue(instrument.ChartData.Area, out IChartModel chartModels))
+            if (areaGroups.TryGetValue(instrument.ChartData.Area ?? string.Empty, out IChartModel chartModels))
             {
               var direction = 0.0;
+              var dataPoint = _points.LastOrDefault();
               var chartData = chartModels.ChartData.FirstOrDefault(o => Equals(o.Value.Shape, nameof(ShapeEnum.Arrow))).Value;
 
-              if (chartData == null)
+              if (chartData == null || dataPoint == null)
               {
                 return;
               }
 
-              switch (order.Type)
+              switch (order.Side)
               {
-                case TransactionTypeEnum.Buy: direction = 1.0; break;
-                case TransactionTypeEnum.Sell: direction = -1.0; break;
+                case OrderSideEnum.Buy: direction = 1.0; break;
+                case OrderSideEnum.Sell: direction = -1.0; break;
               }
 
               var pointModel = new PointModel
               {
                 Last = order.Price,
                 ChartData = chartData,
-                Time = _points.Last().Time,
+                Time = dataPoint.Time,
                 Bar = new PointBarModel
                 {
                   Close = order.Price

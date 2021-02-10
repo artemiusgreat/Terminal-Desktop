@@ -1,6 +1,6 @@
 namespace Core.EnumSpace
 {
-  public enum TransactionStatusEnum : byte
+  public enum OrderStatusEnum : byte
   {
     None = 0,
     Placed = 1,

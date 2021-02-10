@@ -71,6 +71,7 @@
       <DataGrid.Columns>
         <DataGridTextColumn Width="*" Header="Time" Binding="{Binding Time}" />
         <DataGridTextColumn Width="*" Header="Instrument" Binding="{Binding Instrument}" />
+        <DataGridTextColumn Width="Auto" Header="Type" Binding="{Binding Type}" />
         <DataGridTextColumn Width="Auto" Header="Side" Binding="{Binding Side}" />
         <DataGridTextColumn Width="Auto" Header="Size" Binding="{Binding Size}" ElementStyle="{StaticResource RightCell}" />
         <DataGridTextColumn Width="Auto" Header="Open Price" Binding="{Binding OpenPrice}" ElementStyle="{StaticResource RightCell}" />

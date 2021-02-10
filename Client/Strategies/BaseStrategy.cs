@@ -30,7 +30,7 @@ namespace Client.StrategySpace
         BidSize = bidSize
       };
 
-      if (ConversionManager.Equals(askSize, 0))
+      if (ConversionManager.Compare(askSize, 0))
       {
         response.Last = bid;
       }

@@ -54,7 +54,7 @@ namespace Core.IndicatorSpace
 
       var averagePositive = CalculationManager.SimpleAverage(positives, positives.Count - 1, Interval);
       var averageNegative = CalculationManager.SimpleAverage(negatives, negatives.Count - 1, Interval);
-      var average = ConversionManager.Equals(averageNegative, 0) ? 1.0 : averagePositive / averageNegative;
+      var average = ConversionManager.Compare(averageNegative, 0) ? 1.0 : averagePositive / averageNegative;
       var nextValue = 100.0 - 100.0 / (1.0 + average);
       var nextIndicatorPoint = new PointModel
       {

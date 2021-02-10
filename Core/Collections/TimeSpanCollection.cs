@@ -33,8 +33,8 @@ namespace Core.CollectionSpace
     /// </summary>
     public virtual void Add(T item, TimeSpan? span)
     {
-      var currentTime = ConversionManager.Round(item.Time, span);
-      var previousTime = ConversionManager.Round(item.Time - span.Value, span);
+      var currentTime = ConversionManager.Cut(item.Time, span);
+      var previousTime = ConversionManager.Cut(item.Time - span.Value, span);
       var currentGroup = _dateIndexes.TryGetValue(currentTime.Value.Ticks, out int currentIndex) ? this[currentIndex] : default;
       var previousGroup = _dateIndexes.TryGetValue(previousTime.Value.Ticks, out int previousIndex) ? this[previousIndex] : default;
 
@@ -76,7 +76,7 @@ namespace Core.CollectionSpace
       nextGroup.Last ??= nextGroup.Bar.Close;
 
       nextGroup.TimeFrame = span;
-      nextGroup.Time = ConversionManager.Round(nextPoint.Time, span);
+      nextGroup.Time = ConversionManager.Cut(nextPoint.Time, span);
       nextGroup.Bar.Low ??= Math.Min(nextGroup.Bid.Value, nextGroup.Ask.Value);
       nextGroup.Bar.High ??= Math.Max(nextGroup.Ask.Value, nextGroup.Bid.Value);
 

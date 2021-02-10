@@ -166,7 +166,7 @@ namespace Core.CollectionSpace
     public virtual bool Remove(TKey index)
     {
       var response = false;
-      var item = ConversionManager.Value(_items, index);
+      var item = ConversionManager.To(_items, index);
 
       if (item == null || _items.ContainsKey(index) == false)
       {
