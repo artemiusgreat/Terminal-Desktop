@@ -26,6 +26,31 @@ In order to create connector for preferable broker, implement interface `IGatewa
 
 [Examples](https://github.com/Indemos/Terminal/tree/master/Client/Strategies) of simple trading strategies can be found in `Client` catalog.
 
+# Configuration 
+
+In order to connect to specific gateway, you need to provide relevant credentials by using `App.config` file in the `Client` project or directly in the source code. 
+Example of the configuration file for `Simulation` gateway below. 
+
+```
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <appSettings>
+    <add key="DataLocation" value="D:/Code/Net/Terminal/Data/Quotes" />
+  </appSettings>
+</configuration>
+```
+
+Then, in your strategy, when creating `Gateway` instance, initialize it using configuration above. 
+
+```
+var gateway = new GatewayClient()
+{
+  Token = ...
+  Secret = ...
+  Source = ConfigurationManager.AppSettings["DataLocation"].ToString()
+}
+```
+
 # Preview 
 
 ![](Screens/Panels.png)
