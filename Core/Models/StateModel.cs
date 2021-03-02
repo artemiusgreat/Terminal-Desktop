@@ -1,5 +1,7 @@
 using Core.EnumSpace;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -48,6 +50,16 @@ namespace Core.ModelSpace
   public abstract class StateModel : BaseModel, IStateModel
   {
     /// <summary>
+    /// Disposable subscriptions
+    /// </summary>
+    protected IList<IDisposable> _connections = new List<IDisposable>();
+
+    /// <summary>
+    /// Disposable subscriptions
+    /// </summary>
+    protected IList<IDisposable> _subscriptions = new List<IDisposable>();
+
+    /// <summary>
     /// Current state
     /// </summary>
     public virtual StatusEnum State { get; set; }
@@ -81,7 +93,18 @@ namespace Core.ModelSpace
     {
       StateStream = new Subject<StatusEnum>();
 
-      _disposables.Add(StateStream.Subscribe(o => State = o));
+      _subscriptions.Add(StateStream.Subscribe(o => State = o));
+    }
+
+    /// <summary>
+    /// Dispose 
+    /// </summary>
+    public override void Dispose()
+    {
+      _subscriptions.ForEach(o => o.Dispose());
+      _connections.ForEach(o => o.Dispose());
+      _subscriptions.Clear();
+      _connections.Clear();
     }
   }
 }

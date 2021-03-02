@@ -79,10 +79,12 @@ namespace Core.ModelSpace
       Disconnect();
       OnLoad();
 
-      StateStream.OnNext(StatusEnum.Active);
+      StateStream.OnNext(StatusEnum.Connection);
 
       foreach (var gateway in Gateways)
       {
+        _connections.Add(gateway);
+
         gateway.Account.Instruments.ForEach(o => o.Value.Account = gateway.Account);
         gateway.Account.Gateway = gateway;
         gateway.Connect();
@@ -96,13 +98,16 @@ namespace Core.ModelSpace
     /// </summary>
     public override Task Disconnect()
     {
-      StateStream.OnNext(StatusEnum.Inactive);
-      Gateways.ForEach(o => o.Disconnect());
-      Charts.Clear();
-      Gateways.Clear();
+      Unsubscribe();
 
-      _disposables.ForEach(o => o.Dispose());
-      _disposables.Clear();
+      StateStream.OnNext(StatusEnum.Disconnection);
+
+      Gateways.ForEach(o => o.Disconnect());
+      Gateways.Clear();
+      Charts.Clear();
+
+      _connections.ForEach(o => o.Dispose());
+      _connections.Clear();
 
       return Task.FromResult(0);
     }

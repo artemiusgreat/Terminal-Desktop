@@ -3,7 +3,7 @@ namespace Core.EnumSpace
   public enum EnvironmentEnum : byte
   {
     None = 0,
-    Production = 1,
-    Development = 2
+    Live = 1,
+    Sandbox = 2
   }
 }

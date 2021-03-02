@@ -72,7 +72,7 @@ namespace Core.ModelSpace
     public virtual object Clone() => MemberwiseClone();
 
     /// <summary>
-    /// Dispose implementation
+    /// Dispose
     /// </summary>
     public virtual void Dispose()
     {

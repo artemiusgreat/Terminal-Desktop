@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Core.ModelSpace
 {
   /// <summary>
-  /// Definition
+  /// Cache
   /// </summary>
   public interface ICacheService<TKey, TValue>
   {
@@ -15,7 +15,7 @@ namespace Core.ModelSpace
   }
 
   /// <summary>
-  /// Service to track account changes, including equity and quotes
+  /// Cache
   /// </summary>
   public class CacheService<TKey, TValue> : ICacheService<TKey, TValue>
   {

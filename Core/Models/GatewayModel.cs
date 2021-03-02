@@ -2,10 +2,14 @@ using Core.EnumSpace;
 using Core.MessageSpace;
 using FluentValidation;
 using FluentValidation.Results;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
+using Websocket.Client;
 
 namespace Core.ModelSpace
 {
@@ -34,6 +38,27 @@ namespace Core.ModelSpace
     /// Send order event
     /// </summary>
     ISubject<ITransactionMessage<ITransactionOrderModel>> OrderSenderStream { get; }
+
+    /// <summary>
+    /// Create orders
+    /// </summary>
+    /// <param name="orders"></param>
+    /// <returns></returns>
+    Task<IEnumerable<ITransactionOrderModel>> CreateOrders(params ITransactionOrderModel[] orders);
+
+    /// <summary>
+    /// Update orders
+    /// </summary>
+    /// <param name="orders"></param>
+    /// <returns></returns>
+    Task<IEnumerable<ITransactionOrderModel>> UpdateOrders(params ITransactionOrderModel[] orders);
+
+    /// <summary>
+    /// Close or cancel orders
+    /// </summary>
+    /// <param name="orders"></param>
+    /// <returns></returns>
+    Task<IEnumerable<ITransactionOrderModel>> DeleteOrders(params ITransactionOrderModel[] orders);
   }
 
   /// <summary>
@@ -41,6 +66,10 @@ namespace Core.ModelSpace
   /// </summary>
   public interface IGatewayModel : IStateModel, IDataModel, ITradeModel
   {
+    /// <summary>
+    /// Production or Development mode
+    /// </summary>
+    EnvironmentEnum Mode { get; set; }
   }
 
   /// <summary>
@@ -49,10 +78,46 @@ namespace Core.ModelSpace
   public abstract class GatewayModel : StateModel, IGatewayModel
   {
     /// <summary>
+    /// Last quote
+    /// </summary>
+    protected IPointModel _point = null;
+
+    /// <summary>
+    /// HTTP client
+    /// </summary>
+    protected IClientService _serviceClient = null;
+
+    /// <summary>
+    /// Instance of the streaming client
+    /// </summary>
+    protected IWebsocketClient _streamClient = null;
+
+    /// <summary>
+    /// Unix time
+    /// </summary>
+    protected DateTime _unixTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+
+    /// <summary>
+    /// Socket connection options
+    /// </summary>
+    protected Func<ClientWebSocket> _streamOptions = new Func<ClientWebSocket>(() =>
+    {
+      return new ClientWebSocket
+      {
+        Options = { KeepAliveInterval = TimeSpan.FromSeconds(30) }
+      };
+    });
+
+    /// <summary>
     /// Validation rules
     /// </summary>
-    private static TransactionOrderPriceValidation _orderRules = InstanceManager<TransactionOrderPriceValidation>.Instance;
-    private static InstrumentCollectionsValidation _instrumentRules = InstanceManager<InstrumentCollectionsValidation>.Instance;
+    protected static TransactionOrderPriceValidation _orderRules = InstanceManager<TransactionOrderPriceValidation>.Instance;
+    protected static InstrumentCollectionsValidation _instrumentRules = InstanceManager<InstrumentCollectionsValidation>.Instance;
+
+    /// <summary>
+    /// Production or Sandbox
+    /// </summary>
+    public EnvironmentEnum Mode { get; set; } = EnvironmentEnum.Sandbox;
 
     /// <summary>
     /// Reference to the account
@@ -76,6 +141,36 @@ namespace Core.ModelSpace
     {
       DataStream = new Subject<ITransactionMessage<IPointModel>>();
       OrderSenderStream = new Subject<ITransactionMessage<ITransactionOrderModel>>();
+    }
+
+    /// <summary>
+    /// Create orders
+    /// </summary>
+    /// <param name="orders"></param>
+    /// <returns></returns>
+    public virtual Task<IEnumerable<ITransactionOrderModel>> CreateOrders(params ITransactionOrderModel[] orders)
+    {
+      return Task.FromResult(orders as IEnumerable<ITransactionOrderModel>);
+    }
+
+    /// <summary>
+    /// Update orders
+    /// </summary>
+    /// <param name="orders"></param>
+    /// <returns></returns>
+    public virtual Task<IEnumerable<ITransactionOrderModel>> UpdateOrders(params ITransactionOrderModel[] orders)
+    {
+      return Task.FromResult(orders as IEnumerable<ITransactionOrderModel>);
+    }
+
+    /// <summary>
+    /// Close or cancel orders
+    /// </summary>
+    /// <param name="orders"></param>
+    /// <returns></returns>
+    public virtual Task<IEnumerable<ITransactionOrderModel>> DeleteOrders(params ITransactionOrderModel[] orders)
+    {
+      return Task.FromResult(orders as IEnumerable<ITransactionOrderModel>);
     }
 
     /// <summary>
@@ -106,11 +201,9 @@ namespace Core.ModelSpace
     /// Update missing values of a data point
     /// </summary>
     /// <param name="point"></param>
-    /// <param name="instrument"></param>
-    protected virtual IPointModel UpdatePointProps(IPointModel point, IInstrumentModel instrument)
+    protected virtual IPointModel UpdatePointProps(IPointModel point)
     {
       point.Account = Account;
-      point.Instrument = instrument;
       point.Name = point.Instrument.Name;
       point.ChartData = point.Instrument.ChartData;
       point.TimeFrame = point.Instrument.TimeFrame;
@@ -120,7 +213,7 @@ namespace Core.ModelSpace
       var message = new TransactionMessage<IPointModel>
       {
         Action = ActionEnum.Create,
-        Next = instrument.PointGroups.LastOrDefault()
+        Next = point.Instrument.PointGroups.LastOrDefault()
       };
 
       DataStream.OnNext(message);
@@ -138,29 +231,6 @@ namespace Core.ModelSpace
       point.Instrument.PointGroups.Add(point);
 
       return point;
-    }
-
-    /// <summary>
-    /// Update position properties based on specified order
-    /// </summary>
-    /// <param name="position"></param>
-    /// <param name="order"></param>
-    protected virtual ITransactionPositionModel UpdatePositionParams(ITransactionPositionModel position, ITransactionOrderModel order)
-    {
-      position.Id = order.Id;
-      position.Name = order.Name;
-      position.Description = order.Description;
-      position.Type = order.Type;
-      position.Size = order.Size;
-      position.Side = order.Side;
-      position.Group = order.Group;
-      position.Price = order.Price;
-      position.OpenPrice = order.Price;
-      position.Instrument = order.Instrument;
-      position.Orders = order.Orders;
-      position.Time = order.Time;
-
-      return position;
     }
   }
 

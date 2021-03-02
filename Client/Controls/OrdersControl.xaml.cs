@@ -33,7 +33,7 @@ namespace Client.ControlSpace
         .Merge()
         .Subscribe(message =>
         {
-          if (Equals(message, StatusEnum.Active))
+          if (Equals(message, StatusEnum.Connection))
           {
             CreateSubscriptions();
           }

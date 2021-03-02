@@ -28,6 +28,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chart", "Chart\Chart.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gateway.Gemini", "Gateway\Gemini\Gateway.Gemini.csproj", "{223B63CA-5A78-410C-800F-A0B61A8663E1}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gateway.Oanda", "Gateway\Oanda\Gateway.Oanda.csproj", "{3E21344B-4A66-4F84-B1A4-2A56E6A47266}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -108,6 +110,14 @@ Global
 		{223B63CA-5A78-410C-800F-A0B61A8663E1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{223B63CA-5A78-410C-800F-A0B61A8663E1}.Release|x64.ActiveCfg = Release|x64
 		{223B63CA-5A78-410C-800F-A0B61A8663E1}.Release|x64.Build.0 = Release|x64
+		{3E21344B-4A66-4F84-B1A4-2A56E6A47266}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E21344B-4A66-4F84-B1A4-2A56E6A47266}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E21344B-4A66-4F84-B1A4-2A56E6A47266}.Debug|x64.ActiveCfg = Debug|x64
+		{3E21344B-4A66-4F84-B1A4-2A56E6A47266}.Debug|x64.Build.0 = Debug|x64
+		{3E21344B-4A66-4F84-B1A4-2A56E6A47266}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E21344B-4A66-4F84-B1A4-2A56E6A47266}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E21344B-4A66-4F84-B1A4-2A56E6A47266}.Release|x64.ActiveCfg = Release|x64
+		{3E21344B-4A66-4F84-B1A4-2A56E6A47266}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -117,6 +127,7 @@ Global
 		{BE6BB4D9-A978-4B29-BB5F-B8DF27D8A126} = {7FA894FB-F8CB-412C-81DE-F4685CDC6F5B}
 		{F551A78E-F6E5-48ED-830A-D73011103683} = {7FA894FB-F8CB-412C-81DE-F4685CDC6F5B}
 		{223B63CA-5A78-410C-800F-A0B61A8663E1} = {7FA894FB-F8CB-412C-81DE-F4685CDC6F5B}
+		{3E21344B-4A66-4F84-B1A4-2A56E6A47266} = {7FA894FB-F8CB-412C-81DE-F4685CDC6F5B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4E71322E-108D-4F89-9643-40C3FFE63EC0}

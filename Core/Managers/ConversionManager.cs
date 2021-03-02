@@ -1,7 +1,13 @@
 using Core.ModelSpace;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Web;
 
 namespace Core.ManagerSpace
 {
@@ -127,6 +133,108 @@ namespace Core.ManagerSpace
       }
 
       return default;
+    }
+
+    /// <summary>
+    /// Deserialize stream
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="stream"></param>
+    /// <returns></returns>
+    public static T Deserialize<T>(Stream stream)
+    {
+      try
+      {
+        using (var reader = new StreamReader(stream))
+        using (var content = new JsonTextReader(reader))
+        {
+          return new JsonSerializer().Deserialize<T>(content);
+        }
+      }
+      catch (Exception e)
+      {
+        InstanceManager<LogService>.Instance.Log.Error(e.Message);
+      }
+
+      return default;
+    }
+
+    /// <summary>
+    /// Encode as Base64
+    /// </summary>
+    /// <param name="message"></param>
+    /// <returns></returns>
+    public static byte[] Bytes(string message)
+    {
+      return Encoding.UTF8.GetBytes(message);
+    }
+
+    /// <summary>
+    /// Convert dictionary to URL params
+    /// </summary>
+    /// <param name="inputs"></param>
+    /// <returns></returns>
+    public static string GetQuery(IDictionary<dynamic, dynamic> query)
+    {
+      var inputs = HttpUtility.ParseQueryString(string.Empty);
+
+      if (query is IEnumerable)
+      {
+        foreach (var item in query)
+        {
+          inputs.Add($"{ item.Key }", $"{ item.Value }");
+        }
+      }
+
+      return $"{ inputs }";
+    }
+
+    /// <summary>
+    /// Sign with SHA256
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="secret"></param>
+    /// <returns></returns>
+    public static string Sha256(string message, string secret)
+    {
+      using (var algo = new HMACSHA256(Bytes(secret)))
+      {
+        return algo
+          .ComputeHash(Bytes(message))
+          .Aggregate(new StringBuilder(), (sb, b) => sb.AppendFormat("{0:x2}", b), (sb) => sb.ToString());
+      }
+    }
+
+    /// <summary>
+    /// Sign with SHA256
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="secret"></param>
+    /// <returns></returns>
+    public static string Sha384(string message, string secret)
+    {
+      using (var algo = new HMACSHA384(Bytes(secret)))
+      {
+        return algo
+          .ComputeHash(Bytes(message))
+          .Aggregate(new StringBuilder(), (sb, b) => sb.AppendFormat("{0:x2}", b), (sb) => sb.ToString());
+      }
+    }
+
+    /// <summary>
+    /// Sign with SHA512
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="secret"></param>
+    /// <returns></returns>
+    public static string Sha512(string message, string secret)
+    {
+      using (var algo = new HMACSHA512(Bytes(secret)))
+      {
+        return algo
+          .ComputeHash(Bytes(message))
+          .Aggregate(new StringBuilder(), (sb, b) => sb.AppendFormat("{0:x2}", b), (sb) => sb.ToString());
+      }
     }
   }
 }

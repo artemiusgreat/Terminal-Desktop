@@ -64,6 +64,7 @@ namespace Gateway.Simulation
 
         point.Bar ??= new PointBarModel();
 
+        model.Instrument = instrument.Value;
         model.Ask = point.Bar.Close + generator.NextDouble() * (10.0 - 1.0) + 1.0 - 5.0;
         model.Bid = model.Ask - generator.NextDouble() * 5.0;
         model.Time = point.Time;
@@ -73,7 +74,7 @@ namespace Gateway.Simulation
         point.Time = point.Time.Value.AddTicks(span.Ticks);
         point.Bar.Close = model.Ask;
 
-        UpdatePointProps(model, instrument.Value);
+        UpdatePointProps(model);
       }
 
       return Task.FromResult(0);

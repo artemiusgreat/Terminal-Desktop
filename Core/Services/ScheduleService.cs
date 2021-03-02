@@ -3,18 +3,18 @@ using System.Reactive.Concurrency;
 namespace Core.ModelSpace
 {
   /// <summary>
-  /// Definition
+  /// Asynchronous single-threaded scheduler
   /// </summary>
   public interface IScheduleService
   {
     /// <summary>
-    /// Single instance
+    /// Instance
     /// </summary>
     public EventLoopScheduler Scheduler { get; }
   }
 
   /// <summary>
-  /// Service to track account changes, including equity and quotes
+  /// Asynchronous single-threaded scheduler
   /// </summary>
   public class ScheduleService : IScheduleService
   {

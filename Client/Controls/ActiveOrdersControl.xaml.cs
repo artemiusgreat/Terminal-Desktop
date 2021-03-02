@@ -4,10 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Windows;
 using System.Windows.Controls;
-
-// @TODO: Refactor copy-paste
 
 namespace Client.ControlSpace
 {
@@ -33,7 +30,7 @@ namespace Client.ControlSpace
         .Merge()
         .Subscribe(message =>
         {
-          if (Equals(message, StatusEnum.Active))
+          if (Equals(message, StatusEnum.Connection))
           {
             CreateSubscriptions();
           }

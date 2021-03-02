@@ -4,12 +4,12 @@ using Core.ModelSpace;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Websocket.Client;
 
-namespace Gateway.Gemini
+namespace Gateway.Oanda
 {
   /// <summary>
   /// Implementation
@@ -22,19 +22,14 @@ namespace Gateway.Gemini
     public string Token { get; set; }
 
     /// <summary>
-    /// Secret
-    /// </summary>
-    public string Secret { get; set; }
-
-    /// <summary>
     /// HTTP endpoint
     /// </summary>
-    public string Source { get; set; } = "https://api.sandbox.gemini.com";
+    public string Source { get; set; } = "https://api-fxpractice.oanda.com";
 
     /// <summary>
     /// Socket endpoint
     /// </summary>
-    public string StreamSource { get; set; } = "wss://api.sandbox.gemini.com";
+    public string StreamSource { get; set; } = "https://stream-fxpractice.oanda.com";
 
     /// <summary>
     /// Establish connection with a server
@@ -50,7 +45,7 @@ namespace Gateway.Gemini
 
           _connections.Add(_serviceClient ??= new ClientService());
 
-          await GetPositions();
+          //await GetPositions();
           //await GetAccountData();
           //await GetActiveOrders();
           //await GetActivePositions();
@@ -85,6 +80,31 @@ namespace Gateway.Gemini
     {
       await Unsubscribe();
 
+      // Streaming
+
+      var stream = await GetStream();
+      var span = TimeSpan.FromMilliseconds(0);
+      var scheduler = InstanceManager<ScheduleService>.Instance.Scheduler;
+      var reader = new StreamReader(stream);
+      var process = Observable
+        .Interval(span, scheduler)
+        .Take(1)
+        .Subscribe(async o =>
+        {
+          while (_subscriptions.Any())
+          {
+            var message = await reader.ReadLineAsync();
+
+            if (message.IndexOf("HEARTBEAT", StringComparison.OrdinalIgnoreCase) < 0)
+            {
+              OnInputData(ConversionManager.Deserialize<InputPoint>(message));
+            }
+          }
+        });
+
+      _subscriptions.Add(reader);
+      _subscriptions.Add(stream);
+
       // Orders
 
       var orderSubscription = OrderSenderStream.Subscribe(message =>
@@ -98,43 +118,6 @@ namespace Gateway.Gemini
       });
 
       _subscriptions.Add(orderSubscription);
-
-      // Streaming
-
-      var client = new WebsocketClient(new Uri(StreamSource + "/markets/events"), _streamOptions)
-      {
-        Name = Account.Name,
-        ReconnectTimeout = TimeSpan.FromSeconds(30),
-        ErrorReconnectTimeout = TimeSpan.FromSeconds(30)
-      };
-
-      var connectionSubscription = client.ReconnectionHappened.Subscribe(message => { });
-      var disconnectionSubscription = client.DisconnectionHappened.Subscribe(message => { });
-      var messageSubscription = client.MessageReceived.Subscribe(message =>
-      {
-        dynamic input = JObject.Parse(message.Text);
-
-        var inputStream = $"{ input.type }";
-
-        switch (inputStream)
-        {
-          case "quote": break;
-        }
-      });
-
-      _subscriptions.Add(messageSubscription);
-      _subscriptions.Add(connectionSubscription);
-      _subscriptions.Add(disconnectionSubscription);
-
-      await client.Start();
-
-      var query = new
-      {
-        linebreak = true,
-        symbols = Account.Instruments.Values.Select(o => o.Name)
-      };
-
-      client.Send(ConversionManager.Serialize(query));
     }
 
     public override Task Unsubscribe()
@@ -164,27 +147,39 @@ namespace Gateway.Gemini
     /// Process incoming quotes
     /// </summary>
     /// <param name="input"></param>
-    protected void OnInputQuote(dynamic input)
+    protected void OnInputData(InputPoint input)
     {
-      var dateAsk = ConversionManager.To<long>(input.askdate);
-      var dateBid = ConversionManager.To<long>(input.biddate);
-      var currentAsk = ConversionManager.To<double>(input.ask);
-      var currentBid = ConversionManager.To<double>(input.bid);
+      var currentAsk = input.Ask;
+      var currentBid = input.Bid;
       var previousAsk = _point?.Ask ?? currentAsk;
       var previousBid = _point?.Bid ?? currentBid;
-      var symbol = $"{ input.symbol }";
+      var instrument = $"{ input.Instrument }";
 
       var point = new PointModel
       {
         Ask = currentAsk,
         Bid = currentBid,
+        Time = input.Time,
         Bar = new PointBarModel(),
-        Instrument = Account.Instruments[symbol],
-        AskSize = ConversionManager.To<double>(input.asksz),
-        BidSize = ConversionManager.To<double>(input.bidsz),
-        Time = DateTimeOffset.FromUnixTimeMilliseconds(Math.Max(dateAsk, dateBid)).DateTime,
+        Instrument = Account.Instruments[instrument],
         Last = ConversionManager.Compare(currentBid, previousBid) ? currentAsk : currentBid
       };
+
+      if (input.Asks.Any())
+      {
+        var edge = input.Asks.Min(o => new { o.Price, o.Size });
+
+        point.Ask = Math.Min(point.Ask.Value, edge.Price);
+        point.AskSize = edge.Size;
+      }
+
+      if (input.Bids.Any())
+      {
+        var edge = input.Bids.Max(o => new { o.Price, o.Size });
+
+        point.Bid = Math.Max(point.Bid.Value, edge.Price);
+        point.BidSize = edge.Size;
+      }
 
       _point = point;
 
@@ -211,7 +206,26 @@ namespace Gateway.Gemini
         nonce = DateTime.Now.Ticks
       };
 
-      return MapInput.Positions(await Query(inputs));
+      return null; // MapInput.Positions(await Query(inputs));
+    }
+
+    /// <summary>
+    /// Create streaming URL
+    /// </summary>
+    /// <returns></returns>
+    protected async Task<Stream> GetStream()
+    {
+      var query = new Dictionary<dynamic, dynamic>
+      {
+        ["instruments"] = string.Join(",", Account.Instruments.Select(o => o.Value.Name))
+      };
+
+      var headers = new Dictionary<dynamic, dynamic>
+      {
+        ["Authorization"] = $"Bearer { Token }"
+      };
+
+      return await _serviceClient.Stream($"{ StreamSource }/v3/accounts/{ Account.Id }/pricing/stream", query, headers);
     }
 
     /// <summary>
@@ -225,8 +239,7 @@ namespace Gateway.Gemini
         ["Cache-Control"] = "no-cache",
         ["Accept"] = "application/json",
         ["X-GEMINI-APIKEY"] = Token,
-        ["X-GEMINI-PAYLOAD"] = query,
-        ["X-GEMINI-SIGNATURE"] = ConversionManager.Sha384(query, Secret)
+        ["X-GEMINI-PAYLOAD"] = query
       };
 
       return ConversionManager.Deserialize<dynamic>(await _serviceClient.Post(Source + inputs.request, null, queryHeaders));

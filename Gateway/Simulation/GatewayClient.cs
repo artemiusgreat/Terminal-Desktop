@@ -17,11 +17,6 @@ namespace Gateway.Simulation
   public class GatewayClient : GatewayModel
   {
     /// <summary>
-    /// Initial simulation data
-    /// </summary>
-    protected IList<IDisposable> _clocks = new List<IDisposable>();
-
-    /// <summary>
     /// Source files with quotes
     /// </summary>
     protected IList<StreamReader> _documents = new List<StreamReader>();
@@ -56,27 +51,6 @@ namespace Gateway.Simulation
       _documents.Clear();
       _points.Clear();
 
-      // Orders
-
-      var orderSubscription = OrderSenderStream.Subscribe(message =>
-      {
-        switch (message.Action)
-        {
-          case ActionEnum.Create: CreateOrders(message.Next); break;
-          case ActionEnum.Update: UpdateOrders(message.Next); break;
-          case ActionEnum.Delete: CancelOrders(message.Next); break;
-        }
-      });
-
-      var pointSubscription = Account
-        .Instruments
-        .Select(o => o.Value.PointGroups.ItemStream)
-        .Merge()
-        .Subscribe(message => ProcessPendingOrders());
-
-      _disposables.Add(orderSubscription);
-      _disposables.Add(pointSubscription);
-
       // Prepare documents
 
       _documents = Account
@@ -102,8 +76,8 @@ namespace Gateway.Simulation
     {
       Unsubscribe();
 
-      _disposables.ForEach(o => o.Dispose());
-      _disposables.Clear();
+      _connections.ForEach(o => o.Dispose());
+      _connections.Clear();
 
       return Task.FromResult(0);
     }
@@ -115,13 +89,31 @@ namespace Gateway.Simulation
     {
       Unsubscribe();
 
+      var orderStream = OrderSenderStream.Subscribe(message =>
+      {
+        switch (message.Action)
+        {
+          case ActionEnum.Create: CreateOrders(message.Next); break;
+          case ActionEnum.Update: UpdateOrders(message.Next); break;
+          case ActionEnum.Delete: DeleteOrders(message.Next); break;
+        }
+      });
+
+      var pointStream = Account
+        .Instruments
+        .Select(o => o.Value.PointGroups.ItemStream)
+        .Merge()
+        .Subscribe(message => ProcessPendingOrders());
+
       var span = TimeSpan.FromMilliseconds(Speed);
       var scheduler = InstanceManager<ScheduleService>.Instance.Scheduler;
       var clock = Observable
         .Interval(span, scheduler)
         .Subscribe(o => GeneratePoints());
 
-      _clocks.Add(clock);
+      _subscriptions.Add(orderStream);
+      _subscriptions.Add(pointStream);
+      _subscriptions.Add(clock);
 
       return Task.FromResult(0);
     }
@@ -131,8 +123,8 @@ namespace Gateway.Simulation
     /// </summary>
     public override Task Unsubscribe()
     {
-      _clocks.ForEach(o => o.Dispose());
-      _clocks.Clear();
+      _subscriptions.ForEach(o => o.Dispose());
+      _subscriptions.Clear();
 
       return Task.FromResult(0);
     }
@@ -181,15 +173,16 @@ namespace Gateway.Simulation
 
       if (index == -1)
       {
-        _clocks.ForEach(o => o.Dispose());
+        _subscriptions.ForEach(o => o.Dispose());
 
         return Task.FromResult(0);
       }
 
       var name = Account.Instruments.Keys.ElementAt(index);
-      var instrument = Account.Instruments[name];
 
-      UpdatePointProps(_points[index], instrument);
+      _points[index].Instrument = Account.Instruments[name];
+
+      UpdatePointProps(_points[index]);
 
       _points[index] = null;
 
@@ -200,7 +193,7 @@ namespace Gateway.Simulation
     /// Create order and depending on the account, send it to the processing queue
     /// </summary>
     /// <param name="orders"></param>
-    protected virtual Task<IEnumerable<ITransactionOrderModel>> CreateOrders(params ITransactionOrderModel[] orders)
+    public override Task<IEnumerable<ITransactionOrderModel>> CreateOrders(params ITransactionOrderModel[] orders)
     {
       if (EnsureOrderProps(orders) == false)
       {
@@ -240,7 +233,7 @@ namespace Gateway.Simulation
     /// Update order implementation
     /// </summary>
     /// <param name="orders"></param>
-    protected virtual Task<IEnumerable<ITransactionOrderModel>> UpdateOrders(params ITransactionOrderModel[] orders)
+    public override Task<IEnumerable<ITransactionOrderModel>> UpdateOrders(params ITransactionOrderModel[] orders)
     {
       foreach (var nextOrder in orders)
       {
@@ -263,7 +256,7 @@ namespace Gateway.Simulation
     /// Recursively cancel orders
     /// </summary>
     /// <param name="orders"></param>
-    protected virtual Task<IEnumerable<ITransactionOrderModel>> CancelOrders(params ITransactionOrderModel[] orders)
+    public override Task<IEnumerable<ITransactionOrderModel>> DeleteOrders(params ITransactionOrderModel[] orders)
     {
       foreach (var nextOrder in orders)
       {
@@ -273,7 +266,7 @@ namespace Gateway.Simulation
 
         if (nextOrder.Orders.Any())
         {
-          CancelOrders(nextOrder.Orders.ToArray());
+          DeleteOrders(nextOrder.Orders.ToArray());
         }
       }
 
@@ -333,7 +326,7 @@ namespace Gateway.Simulation
       nextOrder.Price = openPrices.Last().Price;
       nextOrder.Status = OrderStatusEnum.Filled;
 
-      var nextPosition = UpdatePositionParams(new TransactionPositionModel(), nextOrder);
+      var nextPosition = UpdatePositionProps(new TransactionPositionModel(), nextOrder);
 
       nextPosition.Time = pointModel.Time;
       nextPosition.OpenPrices = openPrices;
@@ -374,7 +367,7 @@ namespace Gateway.Simulation
       nextOrder.Price = openPrices.Last().Price;
       nextOrder.Status = OrderStatusEnum.Filled;
 
-      var nextPosition = UpdatePositionParams(new TransactionPositionModel(), nextOrder);
+      var nextPosition = UpdatePositionProps(new TransactionPositionModel(), nextOrder);
 
       nextPosition.Time = pointModel.Time;
       nextPosition.Price = nextOrder.Price;
@@ -425,7 +418,7 @@ namespace Gateway.Simulation
       nextOrder.Price = openPrices.Last().Price;
       nextOrder.Status = OrderStatusEnum.Filled;
 
-      var nextPosition = UpdatePositionParams(new TransactionPositionModel(), nextOrder);
+      var nextPosition = UpdatePositionProps(new TransactionPositionModel(), nextOrder);
 
       nextPosition.Time = pointModel.Time;
       nextPosition.OpenPrices = openPrices;
@@ -441,7 +434,7 @@ namespace Gateway.Simulation
       Account.ActiveOrders.Remove(nextOrder);
       Account.ActivePositions.Remove(previousPosition);
 
-      CancelOrders(previousPosition.Orders.ToArray());
+      DeleteOrders(previousPosition.Orders.ToArray());
 
       Account.Orders.Add(nextOrder);
       Account.Positions.Add(previousPosition);
@@ -452,6 +445,29 @@ namespace Gateway.Simulation
       }
 
       return nextPosition;
+    }
+
+    /// <summary>
+    /// Update position properties based on specified order
+    /// </summary>
+    /// <param name="position"></param>
+    /// <param name="order"></param>
+    protected virtual ITransactionPositionModel UpdatePositionProps(ITransactionPositionModel position, ITransactionOrderModel order)
+    {
+      position.Id = order.Id;
+      position.Name = order.Name;
+      position.Description = order.Description;
+      position.Type = order.Type;
+      position.Size = order.Size;
+      position.Side = order.Side;
+      position.Group = order.Group;
+      position.Price = order.Price;
+      position.OpenPrice = order.Price;
+      position.Instrument = order.Instrument;
+      position.Orders = order.Orders;
+      position.Time = order.Time;
+
+      return position;
     }
 
     /// <summary>

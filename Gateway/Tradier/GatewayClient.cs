@@ -1,258 +1,277 @@
-//using Core.EnumSpace;
-//using Core.ManagerSpace;
-//using Core.ModelSpace;
-//using Newtonsoft.Json.Linq;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Net.WebSockets;
-//using System.Reactive.Linq;
-//using System.Threading.Tasks;
-//using Tradier.Client;
-//using Websocket.Client;
+using Core.EnumSpace;
+using Core.ManagerSpace;
+using Core.ModelSpace;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
+using Websocket.Client;
 
-//namespace Gateway.Tradier
-//{
-//  /// <summary>
-//  /// Implementation
-//  /// </summary>
-//  public class GatewayClient : GatewayModel, IGatewayModel
-//  {
-//    /// <summary>
-//    /// API client
-//    /// </summary>
-//    protected TradierClient _webClient = null;
+namespace Gateway.Tradier
+{
+  /// <summary>
+  /// Implementation
+  /// </summary>
+  public class GatewayClient : GatewayModel, IGatewayModel
+  {
+    /// <summary>
+    /// Socket session ID
+    /// </summary>
+    protected string _streamSession = null;
 
-//    /// <summary>
-//    /// HTTP client
-//    /// </summary>
-//    protected IRemoteService _serviceClient = null;
+    /// <summary>
+    /// API key
+    /// </summary>
+    public string Token
+    {
+      get
+      {
+        switch (Mode)
+        {
+          case EnvironmentEnum.Live: return LiveToken;
+          case EnvironmentEnum.Sandbox: return SnadboxToken;
+        }
 
-//    /// <summary>
-//    /// Instance of the streaming client
-//    /// </summary>
-//    protected IWebsocketClient _webSocketClient = null;
+        return null;
+      }
+    }
 
-//    /// <summary>
-//    /// Socket session ID
-//    /// </summary>
-//    protected string _webSocketSession = null;
+    /// <summary>
+    /// HTTP endpoint
+    /// </summary>
+    public string Source
+    {
+      get
+      {
+        switch (Mode)
+        {
+          case EnvironmentEnum.Live: return LiveSource;
+          case EnvironmentEnum.Sandbox: return SandboxSource;
+        }
 
-//    /// <summary>
-//    /// Socket connection options
-//    /// </summary>
-//    protected Func<ClientWebSocket> _webSocketOptions = new Func<ClientWebSocket>(() =>
-//    {
-//      return new ClientWebSocket
-//      {
-//        Options =
-//        {
-//          KeepAliveInterval = TimeSpan.FromSeconds(30)
-//        }
-//      };
-//    });
+        return null;
+      }
+    }
 
-//    /// <summary>
-//    /// API key
-//    /// </summary>
-//    public string Token { get; set; }
+    /// <summary>
+    /// API key
+    /// </summary>
+    public string LiveToken { get; set; }
 
-//    /// <summary>
-//    /// HTTP endpoint
-//    /// </summary>
-//    public string Source { get; set; } = "https://api.tradier.com/v1";
+    /// <summary>
+    /// Sandbox API key
+    /// </summary>
+    public string SnadboxToken { get; set; }
 
-//    /// <summary>
-//    /// Socket endpoint
-//    /// </summary>
-//    public string StreamSource { get; set; } = "wss://ws.tradier.com/v1";
+    /// <summary>
+    /// HTTP endpoint
+    /// </summary>
+    public string LiveSource { get; set; } = "https://api.tradier.com/v1";
 
-//    /// <summary>
-//    /// Account name
-//    /// </summary>
-//    public string SandboxName { get; set; }
+    /// <summary>
+    /// Sandbox HTTP endpoint
+    /// </summary>
+    public string SandboxSource { get; set; } = "https://sandbox.tradier.com/v1";
 
-//    /// <summary>
-//    /// API key
-//    /// </summary>
-//    public string SandboxToken { get; set; }
+    /// <summary>
+    /// Socket endpoint
+    /// </summary>
+    public string StreamSource { get; set; } = "wss://ws.tradier.com/v1";
 
-//    /// <summary>
-//    /// Sandbox HTTP endpoint
-//    /// </summary>
-//    public string SandboxSource { get; set; } = "https://sandbox.tradier.com/v1";
+    /// <summary>
+    /// Establish connection with a server
+    /// </summary>
+    /// <param name="docHeader"></param>
+    public override Task Connect()
+    {
+      return Task.Run(async () =>
+      {
+        try
+        {
+          await Disconnect();
 
-//    /// <summary>
-//    /// Production or Sandbox
-//    /// </summary>
-//    public EnvironmentEnum Mode { get; set; } = EnvironmentEnum.Development;
+          _serviceClient = new ClientService();
+          _serviceClient.Client.DefaultRequestHeaders.Add("Accept", "application/json");
+          _serviceClient.Client.DefaultRequestHeaders.Add("Authorization", "Bearer " + Token);
 
-//    /// <summary>
-//    /// Establish connection with a server
-//    /// </summary>
-//    /// <param name="docHeader"></param>
-//    public override Task Connect()
-//    {
-//      return Task.Run(async () =>
-//      {
-//        try
-//        {
-//          await Disconnect();
+          _connections.Add(_serviceClient);
 
-//          var orderSubscription = OrderSenderStream.Subscribe(message =>
-//          {
-//            switch (message.Action)
-//            {
-//              case ActionEnum.Create: CreateOrder(message.Next); break;
-//              case ActionEnum.Update: UpdateOrder(message.Next); break;
-//              case ActionEnum.Delete: DeleteOrder(message.Next); break;
-//            }
-//          });
+          //await GetAccountData();
+          //await GetActiveOrders();
+          //await GetActivePositions();
+          await Subscribe();
+        }
+        catch (Exception e)
+        {
+          InstanceManager<LogService>.Instance.Log.Error(e.ToString());
+        }
+      });
+    }
 
-//          _disposables.Add(orderSubscription);
+    /// <summary>
+    /// Disconnect
+    /// </summary>
+    /// <returns></returns>
+    public override Task Disconnect()
+    {
+      Unsubscribe();
 
-//          switch (Mode)
-//          {
-//            case EnvironmentEnum.Production: _webClient = new TradierClient(Token, Name, useProduction: true); break;
-//            case EnvironmentEnum.Development: _webClient = new TradierClient(SandboxToken, SandboxName, useProduction: false); break;
-//          }
+      _connections.ForEach(o => o.Dispose());
+      _connections.Clear();
 
-//          _webSocketClient = await GetWebSocketClient();
+      return Task.FromResult(0);
+    }
 
-//          var balance = await _webClient.Account.GetBalances();
-//          var orders = await _webClient.Account.GetOrders();
-//          var positions = await _webClient.Account.GetPositions();
-//          var history = await _webClient.Account.GetHistory();
-//          var gainLoss = await _webClient.Account.GetGainLoss();
+    /// <summary>
+    /// Start streaming
+    /// </summary>
+    /// <returns></returns>
+    public override async Task Subscribe()
+    {
+      await Unsubscribe();
 
-//          var query = new
-//          {
-//            linebreak = true,
-//            sessionid = _webSocketSession,
-//            symbols = Account.Instruments.Values.Select(o => o.Name)
-//          };
+      // Orders
 
-//          _webSocketClient.Send(ConversionManager.Serialize(query));
-//        }
-//        catch (Exception e)
-//        {
-//          InstanceManager<LogService>.Instance.Log.Error(e.ToString());
-//        }
-//      });
-//    }
+      var orderSubscription = OrderSenderStream.Subscribe(message =>
+      {
+        switch (message.Action)
+        {
+          case ActionEnum.Create: CreateOrders(message.Next); break;
+          case ActionEnum.Update: UpdateOrders(message.Next); break;
+          case ActionEnum.Delete: DeleteOrders(message.Next); break;
+        }
+      });
 
-//    public override Task Disconnect()
-//    {
-//      return Task.Run(() =>
-//      {
-//        _webSocketClient?.Dispose();
-//        _serviceClient?.Client?.Dispose();
-//      });
-//    }
+      _subscriptions.Add(orderSubscription);
 
-//    public override Task Subscribe()
-//    {
-//      return Task.FromResult(0);
-//    }
+      // Streaming
 
-//    public override Task Unsubscribe()
-//    {
-//      return Task.FromResult(0);
-//    }
+      _streamSession = await GetStreamSession();
 
-//    public virtual Task<IEnumerable<ITransactionOrderModel>> CreateOrder(params ITransactionOrderModel[] orders)
-//    {
-//      return Task.FromResult(orders as IEnumerable<ITransactionOrderModel>);
-//    }
+      var client = new WebsocketClient(new Uri(StreamSource + "/markets/events"), _streamOptions)
+      {
+        Name = Account.Name,
+        ReconnectTimeout = TimeSpan.FromSeconds(30),
+        ErrorReconnectTimeout = TimeSpan.FromSeconds(30)
+      };
 
-//    public virtual Task<IEnumerable<ITransactionOrderModel>> UpdateOrder(params ITransactionOrderModel[] orders)
-//    {
-//      return Task.FromResult(orders as IEnumerable<ITransactionOrderModel>);
-//    }
+      var connectionSubscription = client.ReconnectionHappened.Subscribe(message => { });
+      var disconnectionSubscription = client.DisconnectionHappened.Subscribe(message => { });
+      var messageSubscription = client.MessageReceived.Subscribe(message =>
+      {
+        dynamic input = JObject.Parse(message.Text);
 
-//    public virtual Task<IEnumerable<ITransactionOrderModel>> DeleteOrder(params ITransactionOrderModel[] orders)
-//    {
-//      return Task.FromResult(orders as IEnumerable<ITransactionOrderModel>);
-//    }
+        var inputStream = $"{ input.type }";
 
-//    /// <summary>
-//    /// Get streaming client 
-//    /// </summary>
-//    /// <returns></returns>
-//    protected async Task<IWebsocketClient> GetWebSocketClient()
-//    {
-//      _serviceClient = new RemoteService();
-//      _serviceClient.Client.DefaultRequestHeaders.Add("Accept", "application/json");
-//      _serviceClient.Client.DefaultRequestHeaders.Add("Authorization", "Bearer " + Token);
+        switch (inputStream)
+        {
+          case "quote":
 
-//      var session = await _serviceClient.Post<JObject>(Source + "/markets/events/session");
+            OnInputQuote(input);
+            break;
 
-//      _webSocketSession = session["stream"]["sessionid"].ToString();
+          case "trade": break;
+          case "tradex": break;
+          case "summary": break;
+          case "timesale": break;
+        }
+      });
 
-//      var client = new WebsocketClient(new Uri(StreamSource + "/markets/events"), _webSocketOptions)
-//      {
-//        Name = Account.Name,
-//        ReconnectTimeout = TimeSpan.FromSeconds(30),
-//        ErrorReconnectTimeout = TimeSpan.FromSeconds(30)
-//      };
+      _subscriptions.Add(messageSubscription);
+      _subscriptions.Add(connectionSubscription);
+      _subscriptions.Add(disconnectionSubscription);
 
-//      var connectionSubscription = client.ReconnectionHappened.Subscribe(message => { });
-//      var disconnectionSubscription = client.DisconnectionHappened.Subscribe(message => { });
-//      var messageSubscription = client.MessageReceived.Subscribe(message =>
-//      {
-//        var messageModel = JObject.Parse(message.Text);
-//        var messageType = $"{ messageModel["type"] }";
+      await client.Start();
 
-//        switch (messageType)
-//        {
-//          case "quote":
+      var query = new
+      {
+        linebreak = true,
+        sessionid = _streamSession,
+        symbols = Account.Instruments.Values.Select(o => o.Name)
+      };
 
-//            var pointModel = CreatePoint(messageModel);
-//            var instrumentModel = Account.Instruments[pointModel.Instrument.Name];
+      client.Send(ConversionManager.Serialize(query));
+    }
 
-//            instrumentModel.Points.Add(pointModel);
-//            instrumentModel.PointGroups.Add(pointModel);
+    public override Task Unsubscribe()
+    {
+      _subscriptions.ForEach(o => o.Dispose());
+      _subscriptions.Clear();
 
-//            break;
+      return Task.FromResult(0);
+    }
 
-//          case "trade": break;
-//          case "tradex": break;
-//          case "summary": break;
-//          case "timesale": break;
-//        }
-//      });
+    public override Task<IEnumerable<ITransactionOrderModel>> CreateOrders(params ITransactionOrderModel[] orders)
+    {
+      return Task.FromResult(orders as IEnumerable<ITransactionOrderModel>);
+    }
 
-//      _disposables.Add(messageSubscription);
-//      _disposables.Add(connectionSubscription);
-//      _disposables.Add(disconnectionSubscription);
+    public override Task<IEnumerable<ITransactionOrderModel>> UpdateOrders(params ITransactionOrderModel[] orders)
+    {
+      return Task.FromResult(orders as IEnumerable<ITransactionOrderModel>);
+    }
 
-//      await client.Start();
+    public override Task<IEnumerable<ITransactionOrderModel>> DeleteOrders(params ITransactionOrderModel[] orders)
+    {
+      return Task.FromResult(orders as IEnumerable<ITransactionOrderModel>);
+    }
 
-//      return client;
-//    }
+    /// <summary>
+    /// Process incoming quotes
+    /// </summary>
+    /// <param name="input"></param>
+    protected void OnInputQuote(dynamic input)
+    {
+      var dateAsk = ConversionManager.To<long>(input.askdate);
+      var dateBid = ConversionManager.To<long>(input.biddate);
+      var currentAsk = ConversionManager.To<double>(input.ask);
+      var currentBid = ConversionManager.To<double>(input.bid);
+      var previousAsk = _point?.Ask ?? currentAsk;
+      var previousBid = _point?.Bid ?? currentBid;
+      var symbol = $"{ input.symbol }";
 
-//    /// <summary>
-//    /// Parse JSON into a data point
-//    /// </summary>
-//    /// <param name="input"></param>
-//    /// <returns></returns>
-//    protected IPointModel CreatePoint(JObject input)
-//    {
-//      var dateAsk = ConversionManager.Value<long>(input["askdate"]);
-//      var dateBid = ConversionManager.Value<long>(input["biddate"]);
+      var point = new PointModel
+      {
+        Ask = currentAsk,
+        Bid = currentBid,
+        Bar = new PointBarModel(),
+        Instrument = Account.Instruments[symbol],
+        AskSize = ConversionManager.To<double>(input.asksz),
+        BidSize = ConversionManager.To<double>(input.bidsz),
+        Time = DateTimeOffset.FromUnixTimeMilliseconds(Math.Max(dateAsk, dateBid)).DateTime,
+        Last = ConversionManager.Compare(currentBid, previousBid) ? currentAsk : currentBid
+      };
 
-//      return new PointModel
-//      {
-//        Ask = ConversionManager.Value<double>(input["ask"]),
-//        Bid = ConversionManager.Value<double>(input["bid"]),
-//        AskSize = ConversionManager.Value<double>(input["asksz"]),
-//        BidSize = ConversionManager.Value<double>(input["bidsz"]),
-//        Time = DateTimeOffset.FromUnixTimeMilliseconds(Math.Max(dateAsk, dateBid)).DateTime,
-//        Instrument = new InstrumentModel
-//        {
-//          Name = $"{ input["symbol"] }"
-//        }
-//      };
-//    }
-//  }
-//}
+      _point = point;
+
+      UpdatePointProps(point);
+    }
+
+    /// <summary>
+    /// Process incoming quotes
+    /// </summary>
+    /// <param name="input"></param>
+    protected void OnInputTrade(dynamic input)
+    {
+    }
+
+    /// <summary>
+    /// Create session to start streaming
+    /// </summary>
+    /// <returns></returns>
+    protected async Task<string> GetStreamSession()
+    {
+      using (var sessionClient = new ClientService())
+      {
+        sessionClient.Client.DefaultRequestHeaders.Add("Accept", "application/json");
+        sessionClient.Client.DefaultRequestHeaders.Add("Authorization", "Bearer " + LiveToken);
+
+        dynamic session = await sessionClient.Post<dynamic>(LiveSource + "/markets/events/session");
+
+        return $"{ session.stream.sessionid }";
+      }
+    }
+  }
+}

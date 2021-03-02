@@ -6,8 +6,6 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Controls;
 
-// @TODO: Refactor copy-paste
-
 namespace Client.ControlSpace
 {
   public partial class ActivePositionsControl : UserControl
@@ -32,7 +30,7 @@ namespace Client.ControlSpace
         .Merge()
         .Subscribe(message =>
         {
-          if (Equals(message, StatusEnum.Active))
+          if (Equals(message, StatusEnum.Connection))
           {
             CreateSubscriptions();
           }
