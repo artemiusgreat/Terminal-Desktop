@@ -270,11 +270,15 @@ namespace Client.StrategySpace
         new ChartModel
         {
           Name = _instrument.ChartData.Area,
-          ChartData = new NameCollection<string, IChartDataModel> { _instrument.ChartData, deals }
+          ChartData = new NameCollection<string, IChartDataModel> { _instrument.ChartData, deals },
+          ShowValue = (i) =>
+          {
+            return string.Format("{0:0.00000}", i);
+          }
         },
         new ChartModel
         {
-          Center = 0,
+          ValueCenter = 0,
           Name = _imbalanceIndicator.ChartData.Area,
           ChartData = new NameCollection<string, IChartDataModel> { _imbalanceIndicator.ChartData }
         },

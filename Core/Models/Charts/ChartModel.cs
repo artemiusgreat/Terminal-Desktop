@@ -1,4 +1,5 @@
 using Core.CollectionSpace;
+using System;
 
 namespace Core.ModelSpace
 {
@@ -7,7 +8,12 @@ namespace Core.ModelSpace
     /// <summary>
     /// Define vertical alignment and the center of chart
     /// </summary>
-    double? Center { get; set; }
+    double? ValueCenter { get; set; }
+
+    /// <summary>
+    /// Format values on the value axis
+    /// </summary>
+    Func<dynamic, dynamic> ShowValue { get; set; }
 
     /// <summary>
     /// Series
@@ -20,7 +26,12 @@ namespace Core.ModelSpace
     /// <summary>
     /// Define vertical alignment and the center of chart
     /// </summary>
-    public virtual double? Center { get; set; }
+    public virtual double? ValueCenter { get; set; }
+
+    /// <summary>
+    /// Format values on the value axis
+    /// </summary>
+    public virtual Func<dynamic, dynamic> ShowValue { get; set; }
 
     /// <summary>
     /// Series

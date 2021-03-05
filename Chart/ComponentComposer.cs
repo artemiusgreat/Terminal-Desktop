@@ -2,7 +2,6 @@ using Chart.ControlSpace;
 using Chart.DecoratorSpace;
 using Chart.EnumSpace;
 using Chart.ModelSpace;
-using Chart.SeriesSpace;
 using Chart.ShapeSpace;
 using System;
 using System.Collections.Generic;

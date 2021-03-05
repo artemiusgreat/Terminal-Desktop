@@ -77,9 +77,9 @@ namespace Client.ControlSpace
 
       // Create chart areas
 
-      foreach (var area in processors.SelectMany(processor => processor.Charts))
+      foreach (var areaModel in processors.SelectMany(processor => processor.Charts))
       {
-        var seriesModels = area.ChartData.ToDictionary(o => o.Key, o =>
+        var seriesModels = areaModel.ChartData.ToDictionary(o => o.Key, o =>
         {
           var shape = new LineSeries() as ISeries;
 
@@ -100,9 +100,9 @@ namespace Client.ControlSpace
           } as IInputSeriesModel;
         });
 
-        var areaModel = new InputAreaModel
+        var inputAreaModel = new InputAreaModel
         {
-          Name = area.Name,
+          Name = areaModel.Name,
           Series = seriesModels
         };
 
@@ -116,10 +116,10 @@ namespace Client.ControlSpace
 
         var composer = new ComponentComposer
         {
-          Group = areaModel,
-          Name = area.Name,
+          Group = inputAreaModel,
+          Name = areaModel.Name,
           Control = chartControl,
-          ValueCenter = area.Center,
+          ValueCenter = areaModel.ValueCenter,
           ShowIndexAction = (i) =>
           {
             var date = _points.ElementAtOrDefault(0)?.Time;
@@ -133,7 +133,8 @@ namespace Client.ControlSpace
             }
 
             return $"{date:yyyy-MM-dd HH:mm}";
-          }
+          },
+          ShowValueAction = areaModel.ShowValue
         };
 
         _composers.Add(chartControl.Composer = composer);

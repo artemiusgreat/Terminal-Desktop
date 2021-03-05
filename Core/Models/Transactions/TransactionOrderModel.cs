@@ -14,6 +14,11 @@ namespace Core.ModelSpace
   public interface ITransactionOrderModel : ITransactionModel
   {
     /// <summary>
+    /// Time when order was actually executed
+    /// </summary>
+    DateTime? DealTime { get; set; }
+
+    /// <summary>
     /// Type
     /// </summary>
     OrderTypeEnum? Type { get; set; }
@@ -49,6 +54,11 @@ namespace Core.ModelSpace
   /// </summary>
   public class TransactionOrderModel : TransactionModel, ITransactionOrderModel
   {
+    /// <summary>
+    /// Time when order was actually executed
+    /// </summary>
+    public virtual DateTime? DealTime { get; set; }
+
     /// <summary>
     /// Type
     /// </summary>
