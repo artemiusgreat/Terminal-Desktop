@@ -3,7 +3,7 @@ using Core.EnumSpace;
 using Core.IndicatorSpace;
 using Core.MessageSpace;
 using Core.ModelSpace;
-using Gateway.Oanda;
+using Gateway.Tradier;
 using System;
 using System.Configuration;
 using System.Linq;
@@ -38,7 +38,7 @@ namespace Client.StrategySpace
   /// </summary>
   public class ImbalanceStrategy : BaseStrategy
   {
-    const string _asset = "AUD_CAD";
+    const string _asset = "SPY";
     const string _account = "Simulation";
 
     protected DateTime? _date = null;
@@ -72,7 +72,10 @@ namespace Client.StrategySpace
         Account = account,
         //Evaluate = Parse,
         //Source = ConfigurationManager.AppSettings["Source"].ToString(),
-        Token = ConfigurationManager.AppSettings["Token"].ToString(),
+        //Token = ConfigurationManager.AppSettings["AlpacaToken"].ToString(),
+        //Secret = ConfigurationManager.AppSettings["AlpacaSecret"].ToString(),
+        LiveToken = ConfigurationManager.AppSettings["TradierLiveToken"].ToString(),
+        SandboxToken = ConfigurationManager.AppSettings["TradierSandboxToken"].ToString(),
         //SnadboxToken = ConfigurationManager.AppSettings["SandboxToken"].ToString(),
         //Secret = ConfigurationManager.AppSettings["Secret"].ToString()
       };
@@ -273,7 +276,7 @@ namespace Client.StrategySpace
           ChartData = new NameCollection<string, IChartDataModel> { _instrument.ChartData, deals },
           ShowValue = (i) =>
           {
-            return string.Format("{0:0.00000}", i);
+            return string.Format("{0:0.00}", i);
           }
         },
         new ChartModel

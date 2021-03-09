@@ -10,6 +10,36 @@ namespace Core.ModelSpace
   public interface IInstrumentModel : IBaseModel
   {
     /// <summary>
+    /// Bid price
+    /// </summary>
+    double? Bid { get; set; }
+
+    /// <summary>
+    /// Ask price
+    /// </summary>
+    double? Ask { get; set; }
+
+    /// <summary>
+    /// Current price
+    /// </summary>
+    double? Price { get; set; }
+
+    /// <summary>
+    /// Bid volume
+    /// </summary>
+    double? BidSize { get; set; }
+
+    /// <summary>
+    /// Ask volume
+    /// </summary>
+    double? AskSize { get; set; }
+
+    /// <summary>
+    /// Overal volume
+    /// </summary>
+    double? Size { get; set; }
+
+    /// <summary>
     /// Long swap rate for keeping position overnight
     /// </summary>
     double? SwapLong { get; set; }
@@ -80,6 +110,36 @@ namespace Core.ModelSpace
   /// </summary>
   public class InstrumentModel : BaseModel, IInstrumentModel
   {
+    /// <summary>
+    /// Bid price
+    /// </summary>
+    public virtual double? Bid { get; set; }
+
+    /// <summary>
+    /// Ask price
+    /// </summary>
+    public virtual double? Ask { get; set; }
+
+    /// <summary>
+    /// Current price
+    /// </summary>
+    public virtual double? Price { get; set; }
+
+    /// <summary>
+    /// Bid volume
+    /// </summary>
+    public virtual double? BidSize { get; set; }
+
+    /// <summary>
+    /// Ask volume
+    /// </summary>
+    public virtual double? AskSize { get; set; }
+
+    /// <summary>
+    /// Overal volume
+    /// </summary>
+    public virtual double? Size { get; set; }
+
     /// <summary>
     /// Long swap rate for keeping position overnight
     /// </summary>

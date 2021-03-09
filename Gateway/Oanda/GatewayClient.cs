@@ -3,7 +3,6 @@ using Core.EnumSpace;
 using Core.ManagerSpace;
 using Core.ModelSpace;
 using Gateway.Oanda.ModelSpace;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;

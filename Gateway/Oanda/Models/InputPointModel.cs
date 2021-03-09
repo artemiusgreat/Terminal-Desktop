@@ -16,7 +16,7 @@ namespace Gateway.Oanda.ModelSpace
     public double? Ask { get; set; }
 
     [JsonProperty("instrument")]
-    public string? Instrument { get; set; } = string.Empty;
+    public string Instrument { get; set; } = string.Empty;
 
     [JsonProperty("time")]
     public DateTime? Time { get; set; }

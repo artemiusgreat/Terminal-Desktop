@@ -1,6 +1,7 @@
 using Core.EnumSpace;
 using Core.ManagerSpace;
 using Core.ModelSpace;
+using Gateway.Tradier.ModelSpace;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -31,7 +32,7 @@ namespace Gateway.Tradier
         switch (Mode)
         {
           case EnvironmentEnum.Live: return LiveToken;
-          case EnvironmentEnum.Sandbox: return SnadboxToken;
+          case EnvironmentEnum.Sandbox: return SandboxToken;
         }
 
         return null;
@@ -63,17 +64,17 @@ namespace Gateway.Tradier
     /// <summary>
     /// Sandbox API key
     /// </summary>
-    public string SnadboxToken { get; set; }
+    public string SandboxToken { get; set; }
 
     /// <summary>
     /// HTTP endpoint
     /// </summary>
-    public string LiveSource { get; set; } = "https://api.tradier.com/v1";
+    public string LiveSource { get; set; } = "https://api.tradier.com";
 
     /// <summary>
     /// Sandbox HTTP endpoint
     /// </summary>
-    public string SandboxSource { get; set; } = "https://sandbox.tradier.com/v1";
+    public string SandboxSource { get; set; } = "https://sandbox.tradier.com";
 
     /// <summary>
     /// Socket endpoint
@@ -92,11 +93,7 @@ namespace Gateway.Tradier
         {
           await Disconnect();
 
-          _serviceClient = new ClientService();
-          _serviceClient.Client.DefaultRequestHeaders.Add("Accept", "application/json");
-          _serviceClient.Client.DefaultRequestHeaders.Add("Authorization", "Bearer " + Token);
-
-          _connections.Add(_serviceClient);
+          _connections.Add(_serviceClient ??= new ClientService());
 
           //await GetAccountData();
           //await GetActiveOrders();
@@ -163,13 +160,11 @@ namespace Gateway.Tradier
       {
         dynamic input = JObject.Parse(message.Text);
 
-        var inputStream = $"{ input.type }";
-
-        switch (inputStream)
+        switch ($"{ input.type }")
         {
           case "quote":
 
-            OnInputQuote(input);
+            OnInputQuote(ConversionManager.Deserialize<InputPointModel>(message.Text));
             break;
 
           case "trade": break;
@@ -182,12 +177,14 @@ namespace Gateway.Tradier
       _subscriptions.Add(messageSubscription);
       _subscriptions.Add(connectionSubscription);
       _subscriptions.Add(disconnectionSubscription);
+      _subscriptions.Add(client);
 
       await client.Start();
 
       var query = new
       {
         linebreak = true,
+        advancedDetails = true,
         sessionid = _streamSession,
         symbols = Account.Instruments.Values.Select(o => o.Name)
       };
@@ -222,15 +219,15 @@ namespace Gateway.Tradier
     /// Process incoming quotes
     /// </summary>
     /// <param name="input"></param>
-    protected void OnInputQuote(dynamic input)
+    protected void OnInputQuote(InputPointModel input)
     {
-      var dateAsk = ConversionManager.To<long>(input.askdate);
-      var dateBid = ConversionManager.To<long>(input.biddate);
-      var currentAsk = ConversionManager.To<double>(input.ask);
-      var currentBid = ConversionManager.To<double>(input.bid);
+      var dateAsk = input.AskDate;
+      var dateBid = input.BidDate;
+      var currentAsk = input.Ask;
+      var currentBid = input.Bid;
       var previousAsk = _point?.Ask ?? currentAsk;
       var previousBid = _point?.Bid ?? currentBid;
-      var symbol = $"{ input.symbol }";
+      var symbol = input.Symbol;
 
       var point = new PointModel
       {
@@ -238,9 +235,9 @@ namespace Gateway.Tradier
         Bid = currentBid,
         Bar = new PointBarModel(),
         Instrument = Account.Instruments[symbol],
-        AskSize = ConversionManager.To<double>(input.asksz),
-        BidSize = ConversionManager.To<double>(input.bidsz),
-        Time = DateTimeOffset.FromUnixTimeMilliseconds(Math.Max(dateAsk, dateBid)).DateTime,
+        AskSize = input.AskSize,
+        BidSize = input.BidSize,
+        Time = DateTimeOffset.FromUnixTimeMilliseconds(Math.Max(dateAsk.Value, dateBid.Value)).DateTime,
         Last = ConversionManager.Compare(currentBid, previousBid) ? currentAsk : currentBid
       };
 
@@ -258,6 +255,32 @@ namespace Gateway.Tradier
     }
 
     /// <summary>
+    /// Get options chain
+    /// </summary>
+    /// <param name="inputs"></param>
+    /// <returns></returns>
+    protected async Task<IList<IInstrumentOptionModel>> GetOptionsChain(dynamic inputs)
+    {
+      var options = new List<IInstrumentOptionModel>();
+      var response = await GetResponse<InputOptionItemModel>($"/v1/markets/options/chains");
+
+      foreach (var inputOption in response.Options)
+      {
+        var optionModel = new InstrumentOptionModel
+        {
+          Bid = inputOption.Bid,
+          Ask = inputOption.Ask,
+          Price = inputOption.Last,
+          Strike = inputOption.Strike
+        };
+
+        options.Add(optionModel);
+      }
+
+      return options;
+    }
+
+    /// <summary>
     /// Create session to start streaming
     /// </summary>
     /// <returns></returns>
@@ -265,13 +288,39 @@ namespace Gateway.Tradier
     {
       using (var sessionClient = new ClientService())
       {
-        sessionClient.Client.DefaultRequestHeaders.Add("Accept", "application/json");
-        sessionClient.Client.DefaultRequestHeaders.Add("Authorization", "Bearer " + LiveToken);
+        var headers = new Dictionary<dynamic, dynamic>
+        {
+          ["Accept"] = "application/json",
+          ["Authorization"] = $"Bearer { LiveToken }"
+        };
 
-        dynamic session = await sessionClient.Post<dynamic>(LiveSource + "/markets/events/session");
+        dynamic session = await sessionClient.Post<dynamic>(LiveSource + "/v1/markets/events/session", null, headers);
 
         return $"{ session.stream.sessionid }";
       }
+    }
+
+    /// <summary>
+    /// Send HTTP query
+    /// </summary>
+    /// <param name="source"></param>
+    /// <param name="inputs"></param>
+    /// <param name="variables"></param>
+    /// <returns></returns>
+    protected async Task<T> GetResponse<T>(
+      string endpoint,
+      IDictionary<dynamic, dynamic> inputs = null,
+      IDictionary<dynamic, dynamic> variables = null)
+    {
+      var headers = new Dictionary<dynamic, dynamic>
+      {
+        ["Accept"] = "application/json",
+        ["Authorization"] = $"Bearer { Token }"
+      };
+
+      return variables == null ?
+        await _serviceClient.Get<T>(Source + endpoint + "?" + ConversionManager.GetQuery(inputs), null, headers) :
+        await _serviceClient.Post<T>(Source + endpoint + "?" + ConversionManager.GetQuery(inputs), variables, headers);
     }
   }
 }

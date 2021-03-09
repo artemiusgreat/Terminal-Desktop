@@ -6,7 +6,7 @@ namespace Core.ModelSpace
   /// <summary>
   /// Definition
   /// </summary>
-  public interface IInstrumentFutureModel : IBaseModel
+  public interface IInstrumentFutureModel : IInstrumentModel
   {
     /// <summary>
     /// Expiration date
@@ -17,7 +17,7 @@ namespace Core.ModelSpace
   /// <summary>
   /// Implementation
   /// </summary>
-  public class InstrumentFutureModel : BaseModel, IInstrumentFutureModel
+  public class InstrumentFutureModel : InstrumentModel, IInstrumentFutureModel
   {
     /// <summary>
     /// Expiration date

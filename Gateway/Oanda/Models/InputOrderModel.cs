@@ -24,16 +24,16 @@ namespace Gateway.Oanda.ModelSpace
     public double? Price { get; set; }
 
     [JsonProperty("type")]
-    public string? Type { get; set; }
+    public string Type { get; set; }
 
     [JsonProperty("state")]
-    public string? Status { get; set; }
+    public string Status { get; set; }
 
     [JsonProperty("instrument")]
-    public string? Instrument { get; set; }
+    public string Instrument { get; set; }
 
     [JsonProperty("timeInForce")]
-    public string? TimeSpan { get; set; }
+    public string TimeSpan { get; set; }
 
     [JsonProperty("filledTime")]
     public DateTime? FillTime { get; set; }

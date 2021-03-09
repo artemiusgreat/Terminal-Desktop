@@ -35,12 +35,12 @@ namespace Gateway.Oanda.ModelSpace
     public double? MarginAvailable { get; set; }
 
     [JsonProperty("id")]
-    public string? Id { get; set; }
+    public string Id { get; set; }
 
     [JsonProperty("alias")]
-    public string? Alias { get; set; }
+    public string Alias { get; set; }
 
     [JsonProperty("currency")]
-    public string? Currency { get; set; }
+    public string Currency { get; set; }
   }
 }
