@@ -5,7 +5,7 @@ Currently, supports only stocks with experimental extension for FX, options, and
 
 # Disclaimer
 
-The app is in active development state and can be updated without any notice.
+The app is in active development state and can be updated without any notice. May contain references to other apps in [this list](https://github.com/Indemos) that were NOT included in the current repository.
 
 # Structure
 
