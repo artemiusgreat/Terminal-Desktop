@@ -289,5 +289,3 @@ __pycache__/
 *.xsd.cs
 
 # User config 
-
-Client/App.config

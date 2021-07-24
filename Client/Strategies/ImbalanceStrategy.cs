@@ -3,7 +3,7 @@ using Core.EnumSpace;
 using Core.IndicatorSpace;
 using Core.MessageSpace;
 using Core.ModelSpace;
-using Gateway.Tradier;
+using Gateway.Simulation;
 using System;
 using System.Configuration;
 using System.Linq;
@@ -38,7 +38,7 @@ namespace Client.StrategySpace
   /// </summary>
   public class ImbalanceStrategy : BaseStrategy
   {
-    const string _asset = "SPY";
+    const string _asset = "GOOG";
     const string _account = "Simulation";
 
     protected DateTime? _date = null;
@@ -70,14 +70,8 @@ namespace Client.StrategySpace
       {
         Name = _account,
         Account = account,
-        //Evaluate = Parse,
-        //Source = ConfigurationManager.AppSettings["Source"].ToString(),
-        //Token = ConfigurationManager.AppSettings["AlpacaToken"].ToString(),
-        //Secret = ConfigurationManager.AppSettings["AlpacaSecret"].ToString(),
-        LiveToken = ConfigurationManager.AppSettings["TradierLiveToken"].ToString(),
-        SandboxToken = ConfigurationManager.AppSettings["TradierSandboxToken"].ToString(),
-        //SnadboxToken = ConfigurationManager.AppSettings["SandboxToken"].ToString(),
-        //Secret = ConfigurationManager.AppSettings["Secret"].ToString()
+        Evaluate = Parse,
+        Source = ConfigurationManager.AppSettings["DataLocation"].ToString(),
       };
 
       _imbalanceIndicator = new ImbalanceIndicator { Name = "Imbalance" };

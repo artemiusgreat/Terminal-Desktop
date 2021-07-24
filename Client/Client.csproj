@@ -25,13 +25,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\Gateway\Alpaca\Gateway.Alpaca.csproj" />
     <ProjectReference Include="..\Gateway\Gemini\Gateway.Gemini.csproj" />
     <ProjectReference Include="..\Gateway\Oanda\Gateway.Oanda.csproj" />
     <ProjectReference Include="..\Gateway\Simulation\Gateway.Simulation.csproj" />
     <ProjectReference Include="..\Gateway\Tradier\Gateway.Tradier.csproj" />
-    <ProjectReference Include="..\Score\Score.csproj" />
   </ItemGroup>
 
   <ItemGroup>

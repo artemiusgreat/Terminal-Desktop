@@ -6,7 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Core.csproj" />
+    <PackageReference Include="ExCore" Version="1.0.0-RC" />
+    <PackageReference Include="ExScore" Version="1.0.1-RC" />
   </ItemGroup>
 
 </Project>
