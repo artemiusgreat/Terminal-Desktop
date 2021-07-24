@@ -15,7 +15,7 @@ The app is in active development state and can be updated without any notice. Ma
 * **Evaluation** - basic unit tests 
 * **Score** - class library measuring performance and related statstics
 * **Data** - catalog with historical data, any format is acceptable as long as you implement your own parser
-* **Gateway** - gateway implementations for variaous brokers and exchanges, including historical and simulated data
+* **Gateway** - gateway implementations for various brokers and exchanges, including historical and simulated data
 
 # Gateways 
 
