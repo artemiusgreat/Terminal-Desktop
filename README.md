@@ -31,7 +31,7 @@ In order to create connector for preferable broker, implement interface `IGatewa
 In order to connect to specific gateway, you need to provide relevant credentials by using `App.config` file in the `Client` project or directly in the source code. 
 Example of the configuration file for `Simulation` gateway below. 
 
-```
+```XML
 <?xml version="1.0" encoding="utf-8" ?>
 <configuration>
   <appSettings>
@@ -42,7 +42,7 @@ Example of the configuration file for `Simulation` gateway below.
 
 Then, in your strategy, when creating `Gateway` instance, initialize it using configuration above. 
 
-```
+```C#
 var gateway = new GatewayClient()
 {
   Token = ...
