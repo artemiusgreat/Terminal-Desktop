@@ -1,11 +1,13 @@
+# Update 
+
+The most active development continues in the cross-platform web version 
+
+https://github.com/Indemos/Terminal
+
 # Stock Trading Terminal and Backtester - Desktop Version
 
 All-in-one. Trading terminal with generic gateway implementation, tick backtester, charting, and performance evaluator for trading strategies.
 Currently, supports only stocks with experimental extension for FX, options, and futures. 
-
-# Disclaimer
-
-The app is in active development state and can be updated without any notice. May contain references to other apps in [this list](https://github.com/Indemos) that were NOT included in the current repository.
 
 # Structure
 
